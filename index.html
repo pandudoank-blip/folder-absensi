@@ -485,7 +485,7 @@ const RADIUS_METER    = 100;        // radius absen dari kantor (meter)
 // =============================================
 
 // const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // State
 let tipeAbsen = 'masuk';
@@ -664,7 +664,7 @@ async function submitAbsen() {
 
   // Simpan ke Supabase
  try {
-  const { error } = await db.from('absensi').insert([{
+  const { error } = await supabase.from('absensi').insert([{
     nama,
     id_karyawan: idKary,
     tipe: tipeAbsen,
