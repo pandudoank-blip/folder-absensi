@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard – AbsensiKu</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+  :root {
+    --bg: #f7f6f3;
+    --white: #ffffff;
+    --border: #e8e4dc;
+    --text: #1a1a18;
+    --muted: #888880;
+    --accent: #2563eb;
+    --accent-light: #eff6ff;
+    --success: #16a34a;
+    --success-bg: #f0fdf4;
+    --danger: #dc2626;
+    --danger-bg: #fef2f2;
+    --warn: #d97706;
+    --warn-bg: #fffbeb;
+    --shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  /* Sidebar */
+  .layout { display: flex; min-height: 100vh; }
+  .sidebar {
+    width: 220px;
+    background: var(--white);
+    border-right: 1px solid var(--border);
+    padding: 24px 0;
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+  }
+  .sidebar-logo { padding: 0 20px 24px; font-size: 17px; font-weight: 700; color: var(--accent); border-bottom: 1px solid var(--border); margin-bottom: 16px; }
+  .sidebar-logo span { color: var(--text); }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--muted);
+    cursor: pointer;
+    border-radius: 0;
+    transition: all 0.15s;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+  }
+  .nav-item:hover { color: var(--text); background: var(--bg); }
+  .nav-item.active { color: var(--accent); background: var(--accent-light); font-weight: 600; }
+
+  /* Main */
+  .main { flex: 1; padding: 28px; overflow-x: auto; }
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* Page header */
+  .page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .page-title { font-size: 22px; font-weight: 700; letter-spacing: -0.3px; }
+  .page-sub { font-size: 13px; color: var(--muted); margin-top: 3px; }
+
+  /* Stat cards */
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; margin-bottom: 24px; }
+  .stat {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px;
+    box-shadow: var(--shadow);
+  }
+  .stat-label { font-size: 12px; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 8px; }
+  .stat-num { font-size: 32px; font-weight: 800; line-height: 1; letter-spacing: -1px; }
+  .stat-num.blue { color: var(--accent); }
+  .stat-num.green { color: var(--success); }
+  .stat-num.amber { color: var(--warn); }
+  .stat-num.red { color: var(--danger); }
+  .stat-sub { font-size: 12px; color: var(--muted); margin-top: 5px; }
+
+  /* Table card */
+  .table-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  .table-toolbar {
+    padding: 16px 18px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .toolbar-title { font-size: 15px; font-weight: 600; margin-right: 4px; }
+  .input-filter {
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 13px;
+    color: var(--text);
+    background: var(--bg);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .input-filter:focus { border-color: var(--accent); }
+  select.input-filter { cursor: pointer; }
+  .btn {
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: none;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.15s;
+    white-space: nowrap;
+  }
+  .btn:hover { opacity: 0.85; }
+  .btn-primary { background: var(--accent); color: white; }
+  .btn-outline { background: white; border: 1.5px solid var(--border); color: var(--text); }
+  .btn-success { background: var(--success); color: white; }
+  .btn-group { display: flex; gap: 8px; margin-left: auto; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead { background: var(--bg); }
+  th { padding: 11px 16px; text-align: left; font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  td { padding: 13px 16px; border-bottom: 1px solid #f0ede8; vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #fafaf8; }
+  .empty-row td { text-align: center; color: var(--muted); padding: 40px; font-size: 14px; }
+
+  /* Badges */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 9px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .badge-masuk  { background: var(--success-bg); color: var(--success); }
+  .badge-pulang { background: var(--danger-bg); color: var(--danger); }
+  .badge-ok     { background: var(--success-bg); color: var(--success); }
+  .badge-out    { background: var(--warn-bg); color: var(--warn); }
+  .badge-telat  { background: var(--warn-bg); color: var(--warn); }
+  .badge-hadir  { background: var(--success-bg); color: var(--success); }
+
+  /* Foto thumbnail */
+  .foto-thumb {
+    width: 36px;
+    height: 36px;
+    border-radius: 6px;
+    object-fit: cover;
+    background: var(--bg);
+    cursor: pointer;
+    border: 1px solid var(--border);
+  }
+  .no-foto { width:36px; height:36px; border-radius:6px; background:var(--bg); display:inline-flex; align-items:center; justify-content:center; font-size:18px; border:1px solid var(--border); }
+
+  /* Modal foto */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal-foto { max-width: 360px; width: 90vw; }
+  .modal-foto img { width: 100%; border-radius: 16px; display: block; }
+  .modal-foto p { text-align:center; color:white; margin-top:12px; font-size:14px; }
+
+  /* Login */
+  .login-wrap {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg);
+    padding: 20px;
+  }
+  .login-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 36px 32px;
+    width: 100%;
+    max-width: 380px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+  }
+  .login-card h1 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+  .login-card p { color: var(--muted); font-size: 14px; margin-bottom: 24px; }
+  .login-field { margin-bottom: 14px; }
+  .login-label { font-size: 13px; font-weight: 500; color: var(--muted); display: block; margin-bottom: 6px; }
+  .login-input {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .login-input:focus { border-color: var(--accent); }
+  .btn-login {
+    width: 100%;
+    padding: 14px;
+    border-radius: 12px;
+    border: none;
+    background: var(--accent);
+    color: white;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 8px;
+  }
+  .login-note { font-size: 12px; color: var(--muted); margin-top: 16px; text-align:center; line-height:1.6; }
+
+  /* Loading */
+  .loading-bar {
+    text-align: center;
+    padding: 40px;
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  /* Rekap karyawan */
+  .rekap-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+  .rekap-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    box-shadow: var(--shadow);
+  }
+  .rekap-nama { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+  .rekap-id { font-size: 12px; color: var(--muted); margin-bottom: 12px; }
+  .rekap-stats { display: flex; gap: 8px; }
+  .rekap-stat { flex: 1; text-align: center; background: var(--bg); border-radius: 8px; padding: 8px 4px; }
+  .rekap-stat .num { font-size: 18px; font-weight: 700; }
+  .rekap-stat .lbl { font-size: 10px; color: var(--muted); margin-top: 2px; }
+
+  @media (max-width: 768px) {
+    .sidebar { display: none; }
+    .main { padding: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-page" class="login-wrap">
+  <div class="login-card">
+    <h1>📋 Admin AbsensiKu</h1>
+    <p>Masuk untuk melihat data absensi karyawan</p>
+    <div class="login-field">
+      <label class="login-label">Email Admin</label>
+      <input class="login-input" type="email" id="login-email" placeholder="admin@kantor.com">
+    </div>
+    <div class="login-field">
+      <label class="login-label">Password</label>
+      <input class="login-input" type="password" id="login-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="btn-login" onclick="doLogin()">Masuk</button>
+    <div class="login-note">
+      Akun admin dibuat di Supabase → Authentication.<br>
+      Default untuk testing: admin@test.com / admin123
+    </div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard-page" style="display:none;">
+  <div class="layout">
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="sidebar-logo">📋 Absensi<span>Ku</span></div>
+      <button class="nav-item active" onclick="showPage('overview', this)">📊 Overview</button>
+      <button class="nav-item" onclick="showPage('data', this)">📋 Data Absensi</button>
+      <button class="nav-item" onclick="showPage('rekap', this)">👥 Rekap Karyawan</button>
+      <button class="nav-item" onclick="showPage('export', this)">📥 Export Payroll</button>
+      <div style="position:absolute; bottom:20px; left:0; right:0; padding:0 20px;">
+        <button class="btn btn-outline" style="width:100%; font-size:12px;" onclick="doLogout()">🚪 Keluar</button>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="main">
+
+      <!-- Overview -->
+      <div class="page active" id="page-overview">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Overview</div>
+            <div class="page-sub" id="ov-tanggal">Memuat...</div>
+          </div>
+          <button class="btn btn-primary" onclick="loadData()">🔄 Refresh</button>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat"><div class="stat-label">Total Hari Ini</div><div class="stat-num blue" id="s-total">—</div><div class="stat-sub">Semua absensi</div></div>
+          <div class="stat"><div class="stat-label">Masuk</div><div class="stat-num green" id="s-masuk">—</div><div class="stat-sub">Check-in hari ini</div></div>
+          <div class="stat"><div class="stat-label">Pulang</div><div class="stat-num red" id="s-pulang">—</div><div class="stat-sub">Check-out hari ini</div></div>
+          <div class="stat"><div class="stat-label">Di Luar Kantor</div><div class="stat-num amber" id="s-luar">—</div><div class="stat-sub">GPS di luar area</div></div>
+        </div>
+
+        <div class="table-card">
+          <div class="table-toolbar">
+            <span class="toolbar-title">Absensi Hari Ini</span>
+          </div>
+          <div id="tbl-hari-ini"><div class="loading-bar">⏳ Memuat data...</div></div>
+        </div>
+      </div>
+
+      <!-- Data Absensi -->
+      <div class="page" id="page-data">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Data Absensi</div>
+            <div class="page-sub">Semua data masuk dan pulang</div>
+          </div>
+        </div>
+        <div class="table-card">
+          <div class="table-toolbar">
+            <span class="toolbar-title">Filter</span>
+            <input class="input-filter" type="date" id="filter-tgl" onchange="filterData()">
+            <select class="input-filter" id="filter-tipe" onchange="filterData()">
+              <option value="">Semua tipe</option>
+              <option value="masuk">Masuk</option>
+              <option value="pulang">Pulang</option>
+            </select>
+            <input class="input-filter" type="text" id="filter-nama" placeholder="🔍 Cari nama..." oninput="filterData()" style="min-width:160px;">
+            <div class="btn-group">
+              <button class="btn btn-outline" onclick="resetFilter()">Reset</button>
+            </div>
+          </div>
+          <div id="tbl-semua"><div class="loading-bar">⏳ Memuat data...</div></div>
+        </div>
+      </div>
+
+      <!-- Rekap Karyawan -->
+      <div class="page" id="page-rekap">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Rekap Karyawan</div>
+            <div class="page-sub">Jumlah kehadiran per karyawan bulan ini</div>
+          </div>
+          <select class="input-filter" id="filter-bulan-rekap" onchange="renderRekap()">
+          </select>
+        </div>
+        <div id="rekap-container"><div class="loading-bar">⏳ Memuat data...</div></div>
+      </div>
+
+      <!-- Export Payroll -->
+      <div class="page" id="page-export">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Export Payroll</div>
+            <div class="page-sub">Download data absensi dalam format Excel (.xlsx)</div>
+          </div>
+        </div>
+
+        <div style="display:grid; gap:14px; max-width:560px;">
+
+          <div class="table-card" style="padding:20px;">
+            <div style="font-weight:600; font-size:15px; margin-bottom:6px;">📥 Export Semua Data</div>
+            <div style="color:var(--muted); font-size:13px; margin-bottom:16px;">Download seluruh data absensi. Cocok untuk arsip bulanan.</div>
+            <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+              <select class="input-filter" id="exp-bulan">
+              </select>
+              <button class="btn btn-success" onclick="exportExcel('semua')">⬇ Download Excel</button>
+            </div>
+          </div>
+
+          <div class="table-card" style="padding:20px;">
+            <div style="font-weight:600; font-size:15px; margin-bottom:6px;">📊 Export Rekap Payroll</div>
+            <div style="color:var(--muted); font-size:13px; margin-bottom:16px;">Rekap per karyawan: nama, total hadir, total terlambat. Siap upload ke sistem payroll.</div>
+            <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+              <select class="input-filter" id="exp-bulan-rekap">
+              </select>
+              <button class="btn btn-success" onclick="exportExcel('rekap')">⬇ Download Rekap</button>
+            </div>
+          </div>
+
+          <div class="table-card" style="padding:20px; background: #fffbeb; border-color: #fde68a;">
+            <div style="font-weight:600; font-size:15px; margin-bottom:6px;">📋 Format Kolom Excel</div>
+            <div style="color:var(--muted); font-size:13px; line-height:1.8;">
+              <strong>Sheet "Semua Data":</strong> Tanggal, Nama, ID Karyawan, Tipe (Masuk/Pulang), Jam, GPS Lat, GPS Lng, Jarak ke Kantor (m), Di Area Kantor, Link Foto<br><br>
+              <strong>Sheet "Rekap Payroll":</strong> Nama, ID, Total Hari Masuk, Total Terlambat, Total Pulang Tercatat, Hari Tidak Ada Data
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Modal foto -->
+<div class="modal-overlay" id="modal-foto" onclick="this.classList.remove('show')">
+  <div class="modal-foto">
+    <img id="modal-foto-img" src="" alt="Foto absen">
+    <p id="modal-foto-label">—</p>
+  </div>
+</div>
+
+<script>
+// =============================================
+// KONFIGURASI — SAMA DENGAN absen.html
+// =============================================
+const SUPABASE_URL = https://szjlxhfawjopjyfacwxe.supabase.co;
+const SUPABASE_KEY = = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN6amx4aGZhd2pvcGp5ZmFjd3hlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzODU1MDksImV4cCI6MjA5MTk2MTUwOX0.-x6FGoEId7d6PwGRKTHYgs92bkrSpddX15vQlhMVazc;;
+const ADMIN_PASSWORD = Admin123; // ganti ini!
+// =============================================
+
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+let allData = [];
+
+// ─── LOGIN (simple) ───
+function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pass  = document.getElementById('login-pass').value;
+  if (!email) { alert('Masukkan email'); return; }
+  if (pass !== ADMIN_PASSWORD) { alert('Password salah!'); return; }
+  document.getElementById('login-page').style.display = 'none';
+  document.getElementById('dashboard-page').style.display = 'block';
+  initDashboard();
+}
+
+function doLogout() {
+  document.getElementById('login-page').style.display = 'flex';
+  document.getElementById('dashboard-page').style.display = 'none';
+}
+
+// ─── INIT ───
+async function initDashboard() {
+  const now = new Date();
+  document.getElementById('ov-tanggal').textContent = now.toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+  populateBulan();
+  await loadData();
+}
+
+function populateBulan() {
+  const now = new Date();
+  const selects = ['exp-bulan', 'exp-bulan-rekap', 'filter-bulan-rekap'];
+  selects.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.innerHTML = '';
+    for (let i = 0; i < 6; i++) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const val = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+      const lbl = d.toLocaleDateString('id-ID', { month:'long', year:'numeric' });
+      el.innerHTML += `<option value="${val}">${lbl}</option>`;
+    }
+  });
+  // Set tanggal hari ini di filter
+  document.getElementById('filter-tgl').value = now.toISOString().split('T')[0];
+}
+
+// ─── LOAD DATA ───
+async function loadData() {
+  const { data, error } = await sb.from('absensi').select('*').order('timestamp', { ascending: false }).limit(1000);
+  if (error) { console.error(error); return; }
+  allData = data || [];
+  renderOverview();
+  filterData();
+  renderRekap();
+}
+
+// ─── OVERVIEW ───
+function renderOverview() {
+  const today = new Date().toISOString().split('T')[0];
+  const hari = allData.filter(r => r.tanggal === today);
+  document.getElementById('s-total').textContent  = hari.length;
+  document.getElementById('s-masuk').textContent  = hari.filter(r => r.tipe === 'masuk').length;
+  document.getElementById('s-pulang').textContent = hari.filter(r => r.tipe === 'pulang').length;
+  document.getElementById('s-luar').textContent   = hari.filter(r => r.di_area_kantor === false).length;
+  document.getElementById('tbl-hari-ini').innerHTML = buildTable(hari);
+}
+
+// ─── TABLE BUILDER ───
+function buildTable(rows) {
+  if (!rows.length) return `<table><tr class="empty-row"><td colspan="8">Belum ada data</td></tr></table>`;
+  return `<table>
+    <thead><tr>
+      <th>Foto</th><th>Nama</th><th>ID</th><th>Tipe</th><th>Jam</th><th>Tanggal</th><th>Lokasi</th><th>Jarak</th>
+    </tr></thead>
+    <tbody>
+      ${rows.map(r => `
+        <tr>
+          <td>${r.foto_url
+            ? `<img class="foto-thumb" src="${r.foto_url}" onclick="lihatFoto('${r.foto_url}','${r.nama} - ${r.jam}')">`
+            : `<span class="no-foto">👤</span>`}
+          </td>
+          <td><strong>${esc(r.nama)}</strong></td>
+          <td style="color:var(--muted)">${esc(r.id_karyawan)}</td>
+          <td><span class="badge badge-${r.tipe}">${r.tipe === 'masuk' ? '🟢 Masuk' : '🔴 Pulang'}</span></td>
+          <td>${r.jam || '—'}</td>
+          <td>${r.tanggal || '—'}</td>
+          <td>${r.di_area_kantor === true ? '<span class="badge badge-ok">✅ Kantor</span>' : r.di_area_kantor === false ? '<span class="badge badge-out">⚠️ Luar</span>' : '—'}</td>
+          <td>${r.jarak_kantor != null ? r.jarak_kantor + 'm' : '—'}</td>
+        </tr>`).join('')}
+    </tbody>
+  </table>`;
+}
+
+// ─── FILTER ───
+function filterData() {
+  const tgl   = document.getElementById('filter-tgl')?.value || '';
+  const tipe  = document.getElementById('filter-tipe')?.value || '';
+  const nama  = (document.getElementById('filter-nama')?.value || '').toLowerCase();
+  let rows = allData;
+  if (tgl)  rows = rows.filter(r => r.tanggal === tgl);
+  if (tipe) rows = rows.filter(r => r.tipe === tipe);
+  if (nama) rows = rows.filter(r => r.nama?.toLowerCase().includes(nama) || r.id_karyawan?.toLowerCase().includes(nama));
+  document.getElementById('tbl-semua').innerHTML = buildTable(rows);
+}
+
+function resetFilter() {
+  document.getElementById('filter-tgl').value = '';
+  document.getElementById('filter-tipe').value = '';
+  document.getElementById('filter-nama').value = '';
+  filterData();
+}
+
+// ─── REKAP ───
+function renderRekap() {
+  const bulan = document.getElementById('filter-bulan-rekap')?.value || '';
+  const rows = bulan ? allData.filter(r => r.tanggal?.startsWith(bulan)) : allData;
+
+  const map = {};
+  rows.forEach(r => {
+    if (!map[r.id_karyawan]) map[r.id_karyawan] = { nama: r.nama, id: r.id_karyawan, masuk: new Set(), pulang: 0, luar: 0 };
+    if (r.tipe === 'masuk') map[r.id_karyawan].masuk.add(r.tanggal);
+    if (r.tipe === 'pulang') map[r.id_karyawan].pulang++;
+    if (r.di_area_kantor === false) map[r.id_karyawan].luar++;
+  });
+
+  const cards = Object.values(map);
+  if (!cards.length) {
+    document.getElementById('rekap-container').innerHTML = '<div class="loading-bar">Belum ada data</div>';
+    return;
+  }
+
+  document.getElementById('rekap-container').innerHTML = `<div class="rekap-grid">
+    ${cards.map(c => `
+      <div class="rekap-card">
+        <div class="rekap-nama">${esc(c.nama)}</div>
+        <div class="rekap-id">${esc(c.id)}</div>
+        <div class="rekap-stats">
+          <div class="rekap-stat"><div class="num" style="color:var(--success)">${c.masuk.size}</div><div class="lbl">Hari Masuk</div></div>
+          <div class="rekap-stat"><div class="num" style="color:var(--accent)">${c.pulang}</div><div class="lbl">Pulang</div></div>
+          <div class="rekap-stat"><div class="num" style="color:var(--warn)">${c.luar}</div><div class="lbl">Luar Area</div></div>
+        </div>
+      </div>`).join('')}
+  </div>`;
+}
+
+// ─── EXPORT EXCEL ───
+function exportExcel(mode) {
+  const bulanEl = mode === 'rekap' ? 'exp-bulan-rekap' : 'exp-bulan';
+  const bulan = document.getElementById(bulanEl)?.value || '';
+  const rows = bulan ? allData.filter(r => r.tanggal?.startsWith(bulan)) : allData;
+  const wb = XLSX.utils.book_new();
+
+  if (mode === 'semua') {
+    const ws_data = [
+      ['Tanggal','Nama','ID Karyawan','Tipe','Jam','GPS Lat','GPS Lng','Jarak ke Kantor (m)','Di Area Kantor','Link Foto'],
+      ...rows.map(r => [
+        r.tanggal, r.nama, r.id_karyawan, r.tipe, r.jam,
+        r.latitude, r.longitude, r.jarak_kantor,
+        r.di_area_kantor ? 'Ya' : 'Tidak',
+        r.foto_url || ''
+      ])
+    ];
+    const ws = XLSX.utils.aoa_to_sheet(ws_data);
+    ws['!cols'] = [{wch:12},{wch:22},{wch:12},{wch:8},{wch:8},{wch:12},{wch:12},{wch:18},{wch:14},{wch:40}];
+    XLSX.utils.book_append_sheet(wb, ws, 'Data Absensi');
+    XLSX.writeFile(wb, `absensi-${bulan || 'semua'}.xlsx`);
+
+  } else {
+    const map = {};
+    rows.forEach(r => {
+      if (!map[r.id_karyawan]) map[r.id_karyawan] = { nama: r.nama, id: r.id_karyawan, masuk: new Set(), pulang: 0, luar: 0 };
+      if (r.tipe === 'masuk') map[r.id_karyawan].masuk.add(r.tanggal);
+      if (r.tipe === 'pulang') map[r.id_karyawan].pulang++;
+      if (r.di_area_kantor === false) map[r.id_karyawan].luar++;
+    });
+
+    const rekap_data = [
+      ['Nama','ID Karyawan','Total Hari Masuk','Total Pulang Tercatat','Total Absen Luar Area'],
+      ...Object.values(map).map(c => [c.nama, c.id, c.masuk.size, c.pulang, c.luar])
+    ];
+    const ws2 = XLSX.utils.aoa_to_sheet(rekap_data);
+    ws2['!cols'] = [{wch:22},{wch:14},{wch:18},{wch:20},{wch:20}];
+    XLSX.utils.book_append_sheet(wb, ws2, 'Rekap Payroll');
+    XLSX.writeFile(wb, `rekap-payroll-${bulan || 'semua'}.xlsx`);
+  }
+}
+
+// ─── UTILS ───
+function esc(s) { return String(s||'').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function lihatFoto(url, label) {
+  document.getElementById('modal-foto-img').src = url;
+  document.getElementById('modal-foto-label').textContent = label;
+  document.getElementById('modal-foto').classList.add('show');
+}
+
+function showPage(name, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  el.classList.add('active');
+}
+</script>
+</body>
+</html>
