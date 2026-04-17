@@ -617,17 +617,17 @@ function deteksiGPS() {
 }
 
 // Upload foto ke Cloudinary (opsional)
-//async function uploadFoto(dataURL) {
-//  if (!CLOUDINARY_CLOUD_NAME || CLOUDINARY_CLOUD_NAME === 'MASUKKAN_CLOUD_NAME') return null;
-//  try {
-//    const blob = await (await fetch(dataURL)).blob();
-//    const fd = new FormData();
-//    fd.append('file', blob);
-//    fd.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-//    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, { method:'POST', body:fd });
-//    const data = await res.json();
-//    return data.secure_url || null;
-//  } catch { return null; }
+async function uploadFoto(dataURL) {
+  if (!CLOUDINARY_CLOUD_NAME || CLOUDINARY_CLOUD_NAME === 'MASUKKAN_CLOUD_NAME') return null;
+  try {
+    const blob = await (await fetch(dataURL)).blob();
+    const fd = new FormData();
+    fd.append('file', blob);
+    fd.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, { method:'POST', body:fd });
+    const data = await res.json();
+    return data.secure_url || null;
+  } catch { return null; }
 }
 
 // Submit
