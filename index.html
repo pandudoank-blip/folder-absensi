@@ -1,79 +1,88 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AbsensiKu</title>
+
+<!-- ✅ FIX CDN SUPABASE -->
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+
+<style>
+body { font-family: sans-serif; background:#f5f5f5; padding:20px; }
+.card { background:white; padding:15px; border-radius:10px; margin-bottom:10px; }
+button { padding:10px; border:none; border-radius:8px; background:#2563eb; color:white; width:100%; }
+input { width:100%; padding:10px; margin-bottom:10px; }
+.toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:black; color:white; padding:10px 20px; border-radius:20px; }
+</style>
+</head>
+
+<body>
+
+<h2>📋 AbsensiKu</h2>
+
+<div class="card">
+  <input type="text" id="input-nama" placeholder="Nama">
+  <input type="text" id="input-id" placeholder="ID Karyawan">
+</div>
+
+<div class="card">
+  <button onclick="bukaKamera()">📸 Ambil Foto</button>
+  <video id="video" autoplay style="width:100%; display:none;"></video>
+  <canvas id="canvas" style="display:none;"></canvas>
+</div>
+
+<div class="card">
+  <button onclick="deteksiGPS()">📍 Ambil GPS</button>
+</div>
+
+<button onclick="submitAbsen()">Kirim Absensi</button>
+
+<div id="toast" class="toast" style="display:none;"></div>
+
 <script>
 // =============================================
-// KONFIGURASI
+// CONFIG
 // =============================================
 const SUPABASE_URL = "https://szjlxhfawjopjyfacwxe.supabase.co";
-const SUPABASE_KEY = "ISI_ANON_KEY_KAMU";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN6amx4aGZhd2pvcGp5ZmFjd3hlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzODU1MDksImV4cCI6MjA5MTk2MTUwOX0.-x6FGoEId7d6PwGRKTHYgs92bkrSpddX15vQlhMVazc";
 
-// OPTIONAL (biar gak error walau gak dipakai)
-const CLOUDINARY_CLOUD_NAME = null;
-const CLOUDINARY_UPLOAD_PRESET = null;
+// INIT (FIXED)
+const { createClient } = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// INIT DB
-const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-// =============================================
 // STATE
-// =============================================
-let tipeAbsen = 'masuk';
 let fotoDataURL = null;
 let gpsData = null;
 
 // =============================================
-// SUBMIT ABSEN (FIXED)
+// CAMERA
 // =============================================
-async function submitAbsen() {
-  const nama = document.getElementById('input-nama').value.trim();
-  const idKary = document.getElementById('input-id').value.trim();
+async function bukaKamera() {
+  const video = document.getElementById('video');
+  video.style.display = 'block';
 
-  if (!nama) return toast('Masukkan nama!', 'error');
-  if (!idKary) return toast('Masukkan ID!', 'error');
-  if (!fotoDataURL) return toast('Ambil foto dulu!', 'error');
-  if (!gpsData) return toast('Ambil GPS dulu!', 'error');
+  const stream = await navigator.mediaDevices.getUserMedia({ video:true });
+  video.srcObject = stream;
 
-  const btn = document.getElementById('btn-submit');
-  btn.disabled = true;
-  btn.textContent = '⏳ Menyimpan...';
+  setTimeout(() => ambilFoto(), 2000);
+}
 
-  try {
-    const now = new Date();
+function ambilFoto() {
+  const video = document.getElementById('video');
+  const canvas = document.getElementById('canvas');
 
-    const dataInsert = {
-      nama: nama,
-      id_karyawan: idKary,
-      tipe: tipeAbsen,
-      jam: now.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' }),
-      tanggal: now.toISOString().split('T')[0],
-      timestamp: now.toISOString(),
-      latitude: gpsData.lat,
-      longitude: gpsData.lng,
-      akurasi_gps: gpsData.acc,
-      jarak_kantor: 0,
-      di_area_kantor: true,
-      foto_url: null, // FIX: selalu ada
-      metode: 'mobile'
-    };
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
 
-    const { error } = await db.from('absensi').insert([dataInsert]);
+  canvas.getContext('2d').drawImage(video,0,0);
+  fotoDataURL = canvas.toDataURL('image/jpeg');
 
-    if (error) throw error;
-
-    toast('Berhasil absen!', 'success');
-
-    // Reset
-    btn.disabled = false;
-    btn.textContent = 'Kirim Absensi';
-
-  } catch (err) {
-    console.error(err);
-    toast('Gagal simpan: ' + err.message, 'error');
-    btn.disabled = false;
-    btn.textContent = 'Kirim Absensi';
-  }
+  toast('Foto diambil');
 }
 
 // =============================================
-// GPS SIMPLE
+// GPS
 // =============================================
 function deteksiGPS() {
   navigator.geolocation.getCurrentPosition(
@@ -83,22 +92,54 @@ function deteksiGPS() {
         lng: pos.coords.longitude,
         acc: pos.coords.accuracy
       };
-      toast('GPS OK', 'success');
+      toast('GPS OK');
     },
-    () => {
-      toast('GPS gagal', 'error');
-    }
+    () => toast('GPS gagal')
   );
+}
+
+// =============================================
+// SUBMIT
+// =============================================
+async function submitAbsen() {
+  const nama = document.getElementById('input-nama').value;
+  const idKary = document.getElementById('input-id').value;
+
+  if (!nama) return toast('Isi nama');
+  if (!idKary) return toast('Isi ID');
+  if (!fotoDataURL) return toast('Ambil foto');
+  if (!gpsData) return toast('Ambil GPS');
+
+  try {
+    const { error } = await db.from('absensi').insert([{
+      nama: nama,
+      id_karyawan: idKary,
+      latitude: gpsData.lat,
+      longitude: gpsData.lng,
+      foto_url: null,
+      metode: 'mobile'
+    }]);
+
+    if (error) throw error;
+
+    toast('✅ Berhasil absen');
+
+  } catch (err) {
+    console.error(err);
+    toast('❌ ' + err.message);
+  }
 }
 
 // =============================================
 // TOAST
 // =============================================
-function toast(msg, type='') {
+function toast(msg) {
   const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.className = 'toast ' + type;
-  el.classList.add('show');
-  setTimeout(() => el.classList.remove('show'), 3000);
+  el.innerText = msg;
+  el.style.display = 'block';
+  setTimeout(()=> el.style.display='none',3000);
 }
 </script>
+
+</body>
+</html>
