@@ -481,7 +481,8 @@ const RADIUS_METER    = 100;        // radius absen dari kantor (meter)
 // const CLOUDINARY_UPLOAD_PRESET = 'MASUKKAN_UPLOAD_PRESET';
 // =============================================
 
-const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+// const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // State
 let tipeAbsen = 'masuk';
@@ -653,28 +654,27 @@ async function submitAbsen() {
 
   // Upload foto
   let fotoUrl = null;
-  if (CLOUDINARY_CLOUD_NAME !== 'MASUKKAN_CLOUD_NAME') {
-    btn.textContent = '⏳ Upload foto...';
-    fotoUrl = await uploadFoto(fotoDataURL);
+  //if (CLOUDINARY_CLOUD_NAME !== 'MASUKKAN_CLOUD_NAME') {
+  //  btn.textContent = '⏳ Upload foto...';
+  //  fotoUrl = await uploadFoto(fotoDataURL);
   }
 
   // Simpan ke Supabase
-  btn.textContent = '⏳ Menyimpan...';
-  try {
-    const { error } = await supabase.from('absensi').insert([{
-      nama,
-      id_karyawan: idKary,
-      tipe: tipeAbsen,
-      jam,
-      tanggal,
-      timestamp: jamFull,
-      latitude: gpsData.lat,
-      longitude: gpsData.lng,
-      akurasi_gps: gpsData.acc,
-      jarak_kantor: jarak,
-      di_area_kantor: diKantor,
-      foto_url: fotoUrl,
-      metode: 'mobile'
+ try {
+  const { error } = await supabase.from('absensi').insert([{
+    nama,
+    id_karyawan: idKary,
+    tipe: tipeAbsen,
+    jam,
+    tanggal,
+    timestamp: jamFull,
+    latitude: gpsData.lat,
+    longitude: gpsData.lng,
+    akurasi_gps: gpsData.acc,
+    jarak_kantor: jarak,
+    di_area_kantor: diKantor,
+    foto_url: null, // penting kalau kolom ada
+    metode: 'mobile'
     }]);
 
     if (error) throw error;
