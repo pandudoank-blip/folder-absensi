@@ -664,7 +664,7 @@ async function submitAbsen() {
 
   // Simpan ke Supabase
  try {
-  const { error } = await supabase.from('absensi').insert([{
+  const { error } = await db.from('absensi').insert([{
     nama,
     id_karyawan: idKary,
     tipe: tipeAbsen,
