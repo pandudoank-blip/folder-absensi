@@ -467,25 +467,21 @@
 // =============================================
 // KONFIGURASI — EDIT DI SINI
 // =============================================
-const SUPABASE_URL    = "https://szjlxhfawjopjyfacwxe.supabase.co";
-const SUPABASE_KEY    = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN6amx4aGZhd2pvcGp5ZmFjd3hlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzODU1MDksImV4cCI6MjA5MTk2MTUwOX0.-x6FGoEId7d6PwGRKTHYgs92bkrSpddX15vQlhMVazc";
+const SUPABASE_URL    = 'MASUKKAN_SUPABASE_URL_KAMU';
+const SUPABASE_KEY    = 'MASUKKAN_SUPABASE_ANON_KEY_KAMU';
 
-const CLOUDINARY_CLOUD_NAME = '';
-const CLOUDINARY_UPLOAD_PRESET = '';
-  
 // Koordinat kantor kamu (latitude, longitude)
 // Cara cari: buka Google Maps, klik kanan lokasi kantor → "What's here?"
-const KANTOR_LAT      = -8.621840340445894;   // contoh: Denpasar Bali
-const KANTOR_LNG      = 115.19565520233532;
-const RADIUS_METER    = 100;        // radius absen dari kantor (meter)
+const KANTOR_LAT      = -8.6705;   // contoh: Denpasar Bali
+const KANTOR_LNG      = 115.2126;
+const RADIUS_METER    = 200;        // radius absen dari kantor (meter)
 
 // Cloudinary untuk upload foto (opsional, bisa dikosongkan)
-// const CLOUDINARY_CLOUD_NAME    = 'MASUKKAN_CLOUD_NAME';
-// const CLOUDINARY_UPLOAD_PRESET = 'MASUKKAN_UPLOAD_PRESET';
+const CLOUDINARY_CLOUD_NAME    = 'MASUKKAN_CLOUD_NAME';
+const CLOUDINARY_UPLOAD_PRESET = 'MASUKKAN_UPLOAD_PRESET';
 // =============================================
 
-// const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // State
 let tipeAbsen = 'masuk';
@@ -657,27 +653,28 @@ async function submitAbsen() {
 
   // Upload foto
   let fotoUrl = null;
-  //if (CLOUDINARY_CLOUD_NAME !== 'MASUKKAN_CLOUD_NAME') {
-  //  btn.textContent = '⏳ Upload foto...';
-  //  fotoUrl = await uploadFoto(fotoDataURL);
-  //}
+  if (CLOUDINARY_CLOUD_NAME !== 'MASUKKAN_CLOUD_NAME') {
+    btn.textContent = '⏳ Upload foto...';
+    fotoUrl = await uploadFoto(fotoDataURL);
+  }
 
   // Simpan ke Supabase
- try {
-  const { error } = await supabase.from('absensi').insert([{
-    nama,
-    id_karyawan: idKary,
-    tipe: tipeAbsen,
-    jam,
-    tanggal,
-    timestamp: jamFull,
-    latitude: gpsData.lat,
-    longitude: gpsData.lng,
-    akurasi_gps: gpsData.acc,
-    jarak_kantor: jarak,
-    di_area_kantor: diKantor,
-    foto_url: null, // penting kalau kolom ada
-    metode: 'mobile'
+  btn.textContent = '⏳ Menyimpan...';
+  try {
+    const { error } = await db.from('absensi').insert([{
+      nama,
+      id_karyawan: idKary,
+      tipe: tipeAbsen,
+      jam,
+      tanggal,
+      timestamp: jamFull,
+      latitude: gpsData.lat,
+      longitude: gpsData.lng,
+      akurasi_gps: gpsData.acc,
+      jarak_kantor: jarak,
+      di_area_kantor: diKantor,
+      foto_url: fotoUrl,
+      metode: 'mobile'
     }]);
 
     if (error) throw error;
