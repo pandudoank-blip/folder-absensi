@@ -679,6 +679,68 @@ async function uploadFoto(dataURL) {
   } catch { return null; }
 }
 
+async function getShiftDetail(idKaryawan) {
+  const hari = new Date().getDay();
+
+  const { data } = await db
+    .from('karyawan_shift')
+    .select(`
+      shift:shift_id (
+        id,
+        nama_shift,
+        toleransi_telat,
+        shift_detail (*)
+      )
+    `)
+    .eq('id_karyawan', idKaryawan)
+    .single();
+
+  if (!data) return null;
+
+  const detail = data.shift.shift_detail.find(d => d.hari === hari);
+
+  return {
+    ...data.shift,
+    detail
+  };
+}
+
+async function evaluasiAbsensi(idKaryawan, tipe) {
+  const shift = await getShiftDetail(idKaryawan);
+  if (!shift || !shift.detail) return null;
+
+  const now = new Date();
+
+  const toDate = (jam) => {
+    const [h, m] = jam.split(':');
+    const d = new Date();
+    d.setHours(h, m, 0);
+    return d;
+  };
+
+  const masuk = toDate(shift.detail.jam_masuk);
+  const pulang = toDate(shift.detail.jam_pulang);
+
+  let telat = 0;
+  let lembur = 0;
+
+  if (tipe === 'masuk') {
+    telat = (now - masuk) / 60000 - shift.toleransi_telat;
+    if (telat < 0) telat = 0;
+  }
+
+  if (tipe === 'pulang') {
+    lembur = (now - pulang) / 60000;
+    if (lembur < 0) lembur = 0;
+  }
+
+  return {
+    telat: Math.round(telat),
+    lembur: Math.round(lembur),
+    is_libur: shift.detail.is_libur
+  };
+}
+
 // ─── CEK STATUS KARYAWAN & LOKASI ───
 async function cekKaryawanDanLokasi(idKaryawan) {
   // Coba dari Supabase
@@ -724,7 +786,8 @@ async function cekKaryawanDanLokasi(idKaryawan) {
 // Submit
 async function submitAbsen() {
   const nama = document.getElementById('input-nama').value.trim();
-  const idKary = document.getElementById('input-id').value.trim();
+  const idKaryawan = document.getElementById('input-id').value.trim();
+  const eval = await evaluasiAbsensi(idKaryawan, tipeAbsen);
 
   if (!nama) { toast('Masukkan nama lengkap dulu!', 'error'); return; }
   if (!idKary) { toast('Masukkan ID karyawan!', 'error'); return; }
@@ -815,6 +878,9 @@ const diKantor = jarak <= lokasiRadius;
     di_area_kantor: diKantor,
     foto_url: null, // penting kalau kolom ada
     metode: 'mobile'
+    telat_menit: eval?.telat || 0,
+    lembur_menit: eval?.lembur || 0,
+    is_libur: eval?.is_libur || false,
     }]);
 
     if (error) throw error;
