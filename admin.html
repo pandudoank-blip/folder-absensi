@@ -131,6 +131,7 @@
       <button class="nav-item" onclick="showPage('lokasi',this)">📍 Lokasi & Project</button>
       <button class="nav-item" onclick="showPage('assign',this)">🔗 Assign Karyawan</button>
       <button class="nav-item" onclick="showPage('shift',this)">⏰ Shift</button>
+      <button class="nav-item" onclick="showPage('assign-shift',this)">📅 Assign Shift</button>
       <div style="position:absolute;bottom:20px;left:0;right:0;padding:0 20px;">
         <button class="btn btn-outline" style="width:100%;font-size:12px;" onclick="doLogout()">🚪 Keluar</button>
       </div>
@@ -155,6 +156,26 @@
           <div id="tbl-hari-ini"><div class="loading-bar">⏳ Memuat data...</div></div>
         </div>
       </div>
+
+      <div class="page" id="page-assign-shift">
+  <div class="page-header">
+    <div>
+      <div class="page-title">📅 Assign Shift Karyawan</div>
+      <div class="page-sub">Set shift per tanggal</div>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <div class="table-toolbar">
+      <input type="date" id="assign-shift-tgl">
+      <select id="assign-shift-karyawan"></select>
+      <select id="assign-shift-shift"></select>
+      <button class="btn btn-primary" onclick="saveAssignShift()">Simpan</button>
+    </div>
+
+    <div id="tbl-assign-shift"></div>
+  </div>
+</div>
 
       <!-- Data Absensi -->
       <div class="page" id="page-data">
@@ -404,6 +425,45 @@ function renderOverview() {
   document.getElementById('s-pulang').textContent = hari.filter(r=>r.tipe==='pulang').length;
   document.getElementById('s-aktif').textContent  = allKaryawan.filter(k=>k.status==='aktif').length;
   document.getElementById('tbl-hari-ini').innerHTML = buildTable(hari);
+}
+
+function loadAssignShiftForm() {
+  const kSel = document.getElementById('assign-shift-karyawan');
+  const sSel = document.getElementById('assign-shift-shift');
+
+  kSel.innerHTML = '<option value="">Pilih Karyawan</option>';
+  allKaryawan.forEach(k => {
+    kSel.innerHTML += `<option value="${k.id_karyawan}">${k.nama}</option>`;
+  });
+
+  sSel.innerHTML = '<option value="">Pilih Shift</option>';
+  allShift.forEach(s => {
+    sSel.innerHTML += `<option value="${s.id}">${s.nama_shift}</option>`;
+  });
+}
+
+async function saveAssignShift() {
+  const id_karyawan = document.getElementById('assign-shift-karyawan').value;
+  const id_shift = document.getElementById('assign-shift-shift').value;
+  const tanggal = document.getElementById('assign-shift-tgl').value;
+
+  if (!id_karyawan || !id_shift || !tanggal) {
+    alert('Lengkapi data!');
+    return;
+  }
+
+  const { error } = await sb.from('shift_detail').insert([{
+    id_karyawan,
+    id_shift,
+    tanggal
+  }]);
+
+  if (error) {
+    alert(error.message);
+    return;
+  }
+
+  alert('✅ Shift berhasil di-assign');
 }
 
 function buildTable(rows) {
