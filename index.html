@@ -638,13 +638,20 @@ gpsData = { lat, lng, acc };
 
       // const jarak = Math.round(hitungJarak(gpsData.lat, gpsData.lng, KANTOR_LAT, KANTOR_LNG));
       const jarak = Math.round(hitungJarak(gpsData.lat, gpsData.lng, lokasiKerja.lat, lokasiKerja.lng));
+      const jarakMeter = hitungJarak(gpsData.lat, gpsData.lng, lokasiKerja.lat, lokasiKerja.lng);
+      const jarak = Math.round(jarakMeter);
+      const jarakKm = (jarakMeter / 1000).toFixed(2);
       const badge = document.getElementById('radius-badge');
+      let jarakText = '';
+      if (jarakMeter < 1000) {jarakText = `${Math.round(jarakMeter)} m`;
+      } else {jarakText = `${(jarakMeter / 1000).toFixed(2)} km`;
+      }
       if (jarak <= lokasiKerja.radius) {
         badge.className = 'radius-badge ok';
-        badge.innerHTML = `✅ Di area kantor (${jarak}m dari kantor)`;
+        badge.innerHTML = `✅ Di area kantor (${jarakKm} km dari kantor)`;
       } else {
         badge.className = 'radius-badge out';
-        badge.innerHTML = `⚠️ Di luar area kantor (${jarak}m dari kantor)`;
+        badge.innerHTML = `⚠️ Di luar area kantor (${jarakText} dari kantor)`;
       }
       toast('Lokasi berhasil dideteksi ✓', 'success');
     },
