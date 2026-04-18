@@ -59,6 +59,7 @@
   }
   .nav-item:hover { color: var(--text); background: var(--bg); }
   .nav-item.active { color: var(--accent); background: var(--accent-light); font-weight: 600; }
+  .nav-section { padding: 14px 20px 6px; font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; }
 
   /* Main */
   .main { flex: 1; padding: 28px; overflow-x: auto; }
@@ -137,6 +138,9 @@
   .btn-primary { background: var(--accent); color: white; }
   .btn-outline { background: white; border: 1.5px solid var(--border); color: var(--text); }
   .btn-success { background: var(--success); color: white; }
+  .btn-danger { background: var(--danger); color: white; }
+  .btn-warn { background: var(--warn); color: white; }
+  .btn-sm { padding: 5px 11px; font-size: 12px; border-radius: 6px; }
   .btn-group { display: flex; gap: 8px; margin-left: auto; }
 
   table { width: 100%; border-collapse: collapse; font-size: 13px; }
@@ -161,8 +165,8 @@
   .badge-pulang { background: var(--danger-bg); color: var(--danger); }
   .badge-ok     { background: var(--success-bg); color: var(--success); }
   .badge-out    { background: var(--warn-bg); color: var(--warn); }
-  .badge-telat  { background: var(--warn-bg); color: var(--warn); }
-  .badge-hadir  { background: var(--success-bg); color: var(--success); }
+  .badge-aktif  { background: var(--success-bg); color: var(--success); }
+  .badge-nonaktif { background: var(--danger-bg); color: var(--danger); }
 
   /* Foto thumbnail */
   .foto-thumb {
@@ -176,20 +180,52 @@
   }
   .no-foto { width:36px; height:36px; border-radius:6px; background:var(--bg); display:inline-flex; align-items:center; justify-content:center; font-size:18px; border:1px solid var(--border); }
 
-  /* Modal foto */
+  /* Modal */
   .modal-overlay {
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.75);
+    background: rgba(0,0,0,0.6);
     z-index: 100;
     align-items: center;
     justify-content: center;
+    padding: 20px;
   }
   .modal-overlay.show { display: flex; }
   .modal-foto { max-width: 360px; width: 90vw; }
   .modal-foto img { width: 100%; border-radius: 16px; display: block; }
   .modal-foto p { text-align:center; color:white; margin-top:12px; font-size:14px; }
+
+  /* Form Modal */
+  .modal-box {
+    background: var(--white);
+    border-radius: 20px;
+    padding: 28px;
+    width: 100%;
+    max-width: 480px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  }
+  .modal-title { font-size: 18px; font-weight: 700; margin-bottom: 20px; }
+  .form-field { margin-bottom: 14px; }
+  .form-label { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; display: block; margin-bottom: 6px; }
+  .form-input {
+    width: 100%;
+    padding: 11px 13px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    font-size: 14px;
+    color: var(--text);
+    background: var(--white);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .form-input:focus { border-color: var(--accent); }
+  .form-input::placeholder { color: #c8c6c0; }
+  select.form-input { cursor: pointer; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .modal-actions { display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end; }
 
   /* Login */
   .login-wrap {
@@ -261,9 +297,60 @@
   .rekap-stat .num { font-size: 18px; font-weight: 700; }
   .rekap-stat .lbl { font-size: 10px; color: var(--muted); margin-top: 2px; }
 
+  /* Toggle switch */
+  .toggle-wrap { display: flex; align-items: center; gap: 8px; }
+  .toggle { position: relative; display: inline-block; width: 38px; height: 22px; }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .toggle-slider {
+    position: absolute; cursor: pointer; inset: 0;
+    background: #ccc; border-radius: 22px; transition: 0.2s;
+  }
+  .toggle-slider:before {
+    content: ''; position: absolute;
+    height: 16px; width: 16px; left: 3px; bottom: 3px;
+    background: white; border-radius: 50%; transition: 0.2s;
+  }
+  .toggle input:checked + .toggle-slider { background: var(--success); }
+  .toggle input:checked + .toggle-slider:before { transform: translateX(16px); }
+
+  /* Location card */
+  .loc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
+  .loc-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px;
+    box-shadow: var(--shadow);
+  }
+  .loc-name { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+  .loc-sub { font-size: 12px; color: var(--muted); margin-bottom: 12px; }
+  .loc-coords { font-size: 11px; color: var(--muted); margin-bottom: 12px; font-family: monospace; background: var(--bg); padding: 6px 10px; border-radius: 6px; }
+  .loc-actions { display: flex; gap: 8px; }
+  .loc-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 6px; margin-bottom: 10px; background: var(--accent-light); color: var(--accent); }
+
+  /* Assign section */
+  .assign-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid #f0ede8; }
+  .assign-row:last-child { border-bottom: none; }
+  .assign-info { flex: 1; }
+  .assign-name { font-size: 14px; font-weight: 600; }
+  .assign-id { font-size: 12px; color: var(--muted); }
+  .assign-loc { font-size: 12px; color: var(--accent); margin-top: 2px; }
+
+  /* Info box */
+  .info-box {
+    background: var(--accent-light);
+    border: 1px solid #bfdbfe;
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 13px;
+    color: #1e40af;
+    margin-bottom: 16px;
+  }
+
   @media (max-width: 768px) {
     .sidebar { display: none; }
     .main { padding: 16px; }
+    .form-row { grid-template-columns: 1fr; }
   }
 </style>
 </head>
@@ -273,7 +360,7 @@
 <div id="login-page" class="login-wrap">
   <div class="login-card">
     <h1>📋 Admin AbsensiKu</h1>
-    <p>Masuk untuk melihat data absensi karyawan</p>
+    <p>Masuk untuk mengelola data absensi karyawan</p>
     <div class="login-field">
       <label class="login-label">Email Admin</label>
       <input class="login-input" type="email" id="login-email" placeholder="admin@kantor.com">
@@ -284,8 +371,7 @@
     </div>
     <button class="btn-login" onclick="doLogin()">Masuk</button>
     <div class="login-note">
-      Akun admin dibuat di Supabase → Authentication.<br>
-      Default untuk testing: admin@test.com / admin123
+      Default untuk testing: admin@test.com / Admin123
     </div>
   </div>
 </div>
@@ -297,10 +383,18 @@
     <!-- Sidebar -->
     <div class="sidebar">
       <div class="sidebar-logo">📋 BR Absensi<span>Ku</span></div>
+
+      <div class="nav-section">Laporan</div>
       <button class="nav-item active" onclick="showPage('overview', this)">📊 Overview</button>
       <button class="nav-item" onclick="showPage('data', this)">📋 Data Absensi</button>
       <button class="nav-item" onclick="showPage('rekap', this)">👥 Rekap Karyawan</button>
       <button class="nav-item" onclick="showPage('export', this)">📥 Export Payroll</button>
+
+      <div class="nav-section">Manajemen</div>
+      <button class="nav-item" onclick="showPage('karyawan', this)">🧑‍💼 Data Karyawan</button>
+      <button class="nav-item" onclick="showPage('lokasi', this)">📍 Lokasi & Project</button>
+      <button class="nav-item" onclick="showPage('assign', this)">🔗 Assign Karyawan</button>
+
       <div style="position:absolute; bottom:20px; left:0; right:0; padding:0 20px;">
         <button class="btn btn-outline" style="width:100%; font-size:12px;" onclick="doLogout()">🚪 Keluar</button>
       </div>
@@ -323,7 +417,7 @@
           <div class="stat"><div class="stat-label">Total Hari Ini</div><div class="stat-num blue" id="s-total">—</div><div class="stat-sub">Semua absensi</div></div>
           <div class="stat"><div class="stat-label">Masuk</div><div class="stat-num green" id="s-masuk">—</div><div class="stat-sub">Check-in hari ini</div></div>
           <div class="stat"><div class="stat-label">Pulang</div><div class="stat-num red" id="s-pulang">—</div><div class="stat-sub">Check-out hari ini</div></div>
-          <div class="stat"><div class="stat-label">Di Luar Kantor</div><div class="stat-num amber" id="s-luar">—</div><div class="stat-sub">GPS di luar area</div></div>
+          <div class="stat"><div class="stat-label">Karyawan Aktif</div><div class="stat-num amber" id="s-aktif">—</div><div class="stat-sub">ID terdaftar</div></div>
         </div>
 
         <div class="table-card">
@@ -365,10 +459,9 @@
         <div class="page-header">
           <div>
             <div class="page-title">Rekap Karyawan</div>
-            <div class="page-sub">Jumlah kehadiran per karyawan bulan ini</div>
+            <div class="page-sub">Jumlah kehadiran per karyawan</div>
           </div>
-          <select class="input-filter" id="filter-bulan-rekap" onchange="renderRekap()">
-          </select>
+          <select class="input-filter" id="filter-bulan-rekap" onchange="renderRekap()"></select>
         </div>
         <div id="rekap-container"><div class="loading-bar">⏳ Memuat data...</div></div>
       </div>
@@ -383,41 +476,98 @@
         </div>
 
         <div style="display:grid; gap:14px; max-width:560px;">
-
           <div class="table-card" style="padding:20px;">
             <div style="font-weight:600; font-size:15px; margin-bottom:6px;">📥 Export Semua Data</div>
             <div style="color:var(--muted); font-size:13px; margin-bottom:16px;">Download seluruh data absensi. Cocok untuk arsip bulanan.</div>
             <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-              <select class="input-filter" id="exp-bulan">
-              </select>
+              <select class="input-filter" id="exp-bulan"></select>
               <button class="btn btn-success" onclick="exportExcel('semua')">⬇ Download Excel</button>
             </div>
           </div>
 
           <div class="table-card" style="padding:20px;">
             <div style="font-weight:600; font-size:15px; margin-bottom:6px;">📊 Export Rekap Payroll</div>
-            <div style="color:var(--muted); font-size:13px; margin-bottom:16px;">Rekap per karyawan: nama, total hadir, total terlambat. Siap upload ke sistem payroll.</div>
+            <div style="color:var(--muted); font-size:13px; margin-bottom:16px;">Rekap per karyawan: nama, total hadir, total terlambat.</div>
             <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-              <select class="input-filter" id="exp-bulan-rekap">
-              </select>
+              <select class="input-filter" id="exp-bulan-rekap"></select>
               <button class="btn btn-success" onclick="exportExcel('rekap')">⬇ Download Rekap</button>
             </div>
           </div>
-
-          <div class="table-card" style="padding:20px; background: #fffbeb; border-color: #fde68a;">
-            <div style="font-weight:600; font-size:15px; margin-bottom:6px;">📋 Format Kolom Excel</div>
-            <div style="color:var(--muted); font-size:13px; line-height:1.8;">
-              <strong>Sheet "Semua Data":</strong> Tanggal, Nama, ID Karyawan, Tipe (Masuk/Pulang), Jam, GPS Lat, GPS Lng, Jarak ke Kantor (m), Di Area Kantor, Link Foto<br><br>
-              <strong>Sheet "Rekap Payroll":</strong> Nama, ID, Total Hari Masuk, Total Terlambat, Total Pulang Tercatat, Hari Tidak Ada Data
-            </div>
-          </div>
-
         </div>
       </div>
 
-    </div>
-  </div>
-</div>
+      <!-- ====== DATA KARYAWAN ====== -->
+      <div class="page" id="page-karyawan">
+        <div class="page-header">
+          <div>
+            <div class="page-title">🧑‍💼 Data Karyawan</div>
+            <div class="page-sub">Kelola daftar karyawan, aktifkan atau nonaktifkan akses absen</div>
+          </div>
+          <button class="btn btn-primary" onclick="openModalKaryawan()">+ Tambah Karyawan</button>
+        </div>
+
+        <div class="info-box">
+          💡 Karyawan yang <strong>Nonaktif</strong> tidak akan bisa melakukan absensi. ID mereka akan ditolak di halaman absen.
+        </div>
+
+        <div class="table-card">
+          <div class="table-toolbar">
+            <span class="toolbar-title">Daftar Karyawan</span>
+            <input class="input-filter" type="text" id="filter-karyawan" placeholder="🔍 Cari karyawan..." oninput="renderKaryawan()" style="min-width:180px;">
+            <select class="input-filter" id="filter-status-karyawan" onchange="renderKaryawan()">
+              <option value="">Semua Status</option>
+              <option value="aktif">Aktif</option>
+              <option value="nonaktif">Nonaktif</option>
+            </select>
+          </div>
+          <div id="tbl-karyawan"><div class="loading-bar">⏳ Memuat...</div></div>
+        </div>
+      </div>
+
+      <!-- ====== LOKASI & PROJECT ====== -->
+      <div class="page" id="page-lokasi">
+        <div class="page-header">
+          <div>
+            <div class="page-title">📍 Lokasi & Project</div>
+            <div class="page-sub">Kelola lokasi kerja dan project. Setiap lokasi punya koordinat GPS dan radius absen.</div>
+          </div>
+          <button class="btn btn-primary" onclick="openModalLokasi()">+ Tambah Lokasi</button>
+        </div>
+
+        <div class="info-box">
+          💡 Setiap lokasi/project memiliki koordinat GPS dan radius absen sendiri. Karyawan yang di-assign ke lokasi ini akan diabsen berdasarkan koordinat lokasi tersebut.
+        </div>
+
+        <div id="loc-container"><div class="loading-bar">⏳ Memuat...</div></div>
+      </div>
+
+      <!-- ====== ASSIGN KARYAWAN ====== -->
+      <div class="page" id="page-assign">
+        <div class="page-header">
+          <div>
+            <div class="page-title">🔗 Assign Karyawan ke Lokasi</div>
+            <div class="page-sub">Hubungkan karyawan dengan lokasi atau project tempat mereka bekerja</div>
+          </div>
+        </div>
+
+        <div class="info-box">
+          💡 Karyawan bisa dipindah ke lokasi lain kapan saja. Perubahan langsung berlaku saat mereka absen berikutnya. Karyawan yang belum di-assign akan menggunakan lokasi default.
+        </div>
+
+        <div class="table-card">
+          <div class="table-toolbar">
+            <span class="toolbar-title">Daftar Assign</span>
+            <select class="input-filter" id="filter-assign-lokasi" onchange="renderAssign()">
+              <option value="">Semua Lokasi</option>
+            </select>
+          </div>
+          <div id="tbl-assign"><div class="loading-bar">⏳ Memuat...</div></div>
+        </div>
+      </div>
+
+    </div><!-- /main -->
+  </div><!-- /layout -->
+</div><!-- /dashboard -->
 
 <!-- Modal foto -->
 <div class="modal-overlay" id="modal-foto" onclick="this.classList.remove('show')">
@@ -427,9 +577,143 @@
   </div>
 </div>
 
+<!-- Modal Karyawan -->
+<div class="modal-overlay" id="modal-karyawan">
+  <div class="modal-box">
+    <div class="modal-title" id="modal-karyawan-title">Tambah Karyawan</div>
+    <input type="hidden" id="kary-edit-id">
+
+    <div class="form-row">
+      <div class="form-field">
+        <label class="form-label">Nama Lengkap *</label>
+        <input class="form-input" type="text" id="kary-nama" placeholder="contoh: Budi Santoso">
+      </div>
+      <div class="form-field">
+        <label class="form-label">ID Karyawan *</label>
+        <input class="form-input" type="text" id="kary-id" placeholder="contoh: EMP-001">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-field">
+        <label class="form-label">Jabatan</label>
+        <input class="form-input" type="text" id="kary-jabatan" placeholder="contoh: Staff Lapangan">
+      </div>
+      <div class="form-field">
+        <label class="form-label">No. HP</label>
+        <input class="form-input" type="tel" id="kary-hp" placeholder="contoh: 08123456789">
+      </div>
+    </div>
+
+    <div class="form-field">
+      <label class="form-label">Status</label>
+      <select class="form-input" id="kary-status">
+        <option value="aktif">Aktif</option>
+        <option value="nonaktif">Nonaktif</option>
+      </select>
+    </div>
+
+    <div class="form-field">
+      <label class="form-label">Catatan</label>
+      <input class="form-input" type="text" id="kary-catatan" placeholder="opsional">
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modal-karyawan')">Batal</button>
+      <button class="btn btn-primary" onclick="saveKaryawan()">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Lokasi -->
+<div class="modal-overlay" id="modal-lokasi">
+  <div class="modal-box">
+    <div class="modal-title" id="modal-lokasi-title">Tambah Lokasi / Project</div>
+    <input type="hidden" id="lok-edit-id">
+
+    <div class="form-field">
+      <label class="form-label">Nama Lokasi / Project *</label>
+      <input class="form-input" type="text" id="lok-nama" placeholder="contoh: Proyek Gedung A, Kantor Pusat">
+    </div>
+
+    <div class="form-field">
+      <label class="form-label">Deskripsi / Alamat</label>
+      <input class="form-input" type="text" id="lok-alamat" placeholder="contoh: Jl. Sudirman No. 10, Jakarta">
+    </div>
+
+    <div class="form-row">
+      <div class="form-field">
+        <label class="form-label">Latitude GPS *</label>
+        <input class="form-input" type="number" id="lok-lat" placeholder="-8.621840" step="0.000001">
+      </div>
+      <div class="form-field">
+        <label class="form-label">Longitude GPS *</label>
+        <input class="form-input" type="number" id="lok-lng" placeholder="115.195655" step="0.000001">
+      </div>
+    </div>
+
+    <div class="form-field">
+      <label class="form-label">Radius Absen (meter) *</label>
+      <input class="form-input" type="number" id="lok-radius" placeholder="100" min="10" max="5000">
+    </div>
+
+    <div class="form-field">
+      <label class="form-label">Status</label>
+      <select class="form-input" id="lok-status">
+        <option value="aktif">Aktif</option>
+        <option value="selesai">Selesai / Nonaktif</option>
+      </select>
+    </div>
+
+    <div style="background: var(--bg); border-radius: 10px; padding: 12px; font-size: 12px; color: var(--muted); margin-bottom: 4px;">
+      💡 Cara cari koordinat: buka Google Maps → klik kanan lokasi → pilih <strong>"What's here?"</strong> atau <strong>"Koordinat ini"</strong>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modal-lokasi')">Batal</button>
+      <button class="btn btn-primary" onclick="saveLokasi()">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Assign -->
+<div class="modal-overlay" id="modal-assign">
+  <div class="modal-box">
+    <div class="modal-title">Assign Lokasi Kerja</div>
+    <input type="hidden" id="assign-kary-id">
+
+    <div style="background: var(--bg); border-radius: 10px; padding: 12px 14px; margin-bottom: 16px;">
+      <div style="font-size: 14px; font-weight: 600;" id="assign-kary-nama">—</div>
+      <div style="font-size: 12px; color: var(--muted);" id="assign-kary-id-label">—</div>
+    </div>
+
+    <div class="form-field">
+      <label class="form-label">Pilih Lokasi / Project</label>
+      <select class="form-input" id="assign-lokasi-select">
+        <option value="">— Pilih Lokasi —</option>
+      </select>
+    </div>
+
+    <div class="form-field">
+      <label class="form-label">Tanggal Mulai</label>
+      <input class="form-input" type="date" id="assign-tgl-mulai">
+    </div>
+
+    <div class="form-field">
+      <label class="form-label">Keterangan</label>
+      <input class="form-input" type="text" id="assign-ket" placeholder="opsional">
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modal-assign')">Batal</button>
+      <button class="btn btn-primary" onclick="saveAssign()">Simpan Assign</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // =============================================
-// KONFIGURASI — SAMA DENGAN absen.html
+// KONFIGURASI
 // =============================================
 const SUPABASE_URL = "https://szjlxhfawjopjyfacwxe.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN6amx4aGZhd2pvcGp5ZmFjd3hlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzODU1MDksImV4cCI6MjA5MTk2MTUwOX0.-x6FGoEId7d6PwGRKTHYgs92bkrSpddX15vQlhMVazc";
@@ -438,8 +722,11 @@ const ADMIN_PASSWORD = "Admin123"; // ganti ini!
 
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 let allData = [];
+let allKaryawan = [];
+let allLokasi = [];
+let allAssign = [];
 
-// ─── LOGIN (simple) ───
+// ─── LOGIN ───
 function doLogin() {
   const email = document.getElementById('login-email').value.trim();
   const pass  = document.getElementById('login-pass').value;
@@ -460,7 +747,7 @@ async function initDashboard() {
   const now = new Date();
   document.getElementById('ov-tanggal').textContent = now.toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
   populateBulan();
-  await loadData();
+  await Promise.all([loadData(), loadKaryawan(), loadLokasi(), loadAssign()]);
 }
 
 function populateBulan() {
@@ -477,11 +764,10 @@ function populateBulan() {
       el.innerHTML += `<option value="${val}">${lbl}</option>`;
     }
   });
-  // Set tanggal hari ini di filter
   document.getElementById('filter-tgl').value = now.toISOString().split('T')[0];
 }
 
-// ─── LOAD DATA ───
+// ─── LOAD ABSENSI ───
 async function loadData() {
   const { data, error } = await sb.from('absensi').select('*').order('timestamp', { ascending: false }).limit(1000);
   if (error) { console.error(error); return; }
@@ -498,7 +784,7 @@ function renderOverview() {
   document.getElementById('s-total').textContent  = hari.length;
   document.getElementById('s-masuk').textContent  = hari.filter(r => r.tipe === 'masuk').length;
   document.getElementById('s-pulang').textContent = hari.filter(r => r.tipe === 'pulang').length;
-  document.getElementById('s-luar').textContent   = hari.filter(r => r.di_area_kantor === false).length;
+  document.getElementById('s-aktif').textContent  = allKaryawan.filter(k => k.status === 'aktif').length;
   document.getElementById('tbl-hari-ini').innerHTML = buildTable(hari);
 }
 
@@ -551,7 +837,6 @@ function resetFilter() {
 function renderRekap() {
   const bulan = document.getElementById('filter-bulan-rekap')?.value || '';
   const rows = bulan ? allData.filter(r => r.tanggal?.startsWith(bulan)) : allData;
-
   const map = {};
   rows.forEach(r => {
     if (!map[r.id_karyawan]) map[r.id_karyawan] = { nama: r.nama, id: r.id_karyawan, masuk: new Set(), pulang: 0, luar: 0 };
@@ -559,13 +844,11 @@ function renderRekap() {
     if (r.tipe === 'pulang') map[r.id_karyawan].pulang++;
     if (r.di_area_kantor === false) map[r.id_karyawan].luar++;
   });
-
   const cards = Object.values(map);
   if (!cards.length) {
     document.getElementById('rekap-container').innerHTML = '<div class="loading-bar">Belum ada data</div>';
     return;
   }
-
   document.getElementById('rekap-container').innerHTML = `<div class="rekap-grid">
     ${cards.map(c => `
       <div class="rekap-card">
@@ -586,22 +869,15 @@ function exportExcel(mode) {
   const bulan = document.getElementById(bulanEl)?.value || '';
   const rows = bulan ? allData.filter(r => r.tanggal?.startsWith(bulan)) : allData;
   const wb = XLSX.utils.book_new();
-
   if (mode === 'semua') {
     const ws_data = [
       ['Tanggal','Nama','ID Karyawan','Tipe','Jam','GPS Lat','GPS Lng','Jarak ke Kantor (m)','Di Area Kantor','Link Foto'],
-      ...rows.map(r => [
-        r.tanggal, r.nama, r.id_karyawan, r.tipe, r.jam,
-        r.latitude, r.longitude, r.jarak_kantor,
-        r.di_area_kantor ? 'Ya' : 'Tidak',
-        r.foto_url || ''
-      ])
+      ...rows.map(r => [r.tanggal, r.nama, r.id_karyawan, r.tipe, r.jam, r.latitude, r.longitude, r.jarak_kantor, r.di_area_kantor ? 'Ya' : 'Tidak', r.foto_url || ''])
     ];
     const ws = XLSX.utils.aoa_to_sheet(ws_data);
     ws['!cols'] = [{wch:12},{wch:22},{wch:12},{wch:8},{wch:8},{wch:12},{wch:12},{wch:18},{wch:14},{wch:40}];
     XLSX.utils.book_append_sheet(wb, ws, 'Data Absensi');
     XLSX.writeFile(wb, `absensi-${bulan || 'semua'}.xlsx`);
-
   } else {
     const map = {};
     rows.forEach(r => {
@@ -610,7 +886,6 @@ function exportExcel(mode) {
       if (r.tipe === 'pulang') map[r.id_karyawan].pulang++;
       if (r.di_area_kantor === false) map[r.id_karyawan].luar++;
     });
-
     const rekap_data = [
       ['Nama','ID Karyawan','Total Hari Masuk','Total Pulang Tercatat','Total Absen Luar Area'],
       ...Object.values(map).map(c => [c.nama, c.id, c.masuk.size, c.pulang, c.luar])
@@ -622,6 +897,450 @@ function exportExcel(mode) {
   }
 }
 
+// ═══════════════════════════════════════════
+// ─── KARYAWAN ───
+// ═══════════════════════════════════════════
+
+async function loadKaryawan() {
+  // Coba dari tabel karyawan dulu, fallback ke localStorage
+  try {
+    const { data, error } = await sb.from('karyawan').select('*').order('nama');
+    if (!error && data) {
+      allKaryawan = data;
+      renderKaryawan();
+      return;
+    }
+  } catch(e) {}
+  // Fallback localStorage
+  allKaryawan = JSON.parse(localStorage.getItem('karyawan') || '[]');
+  renderKaryawan();
+}
+
+async function saveKaryawanDB(kary) {
+  try {
+    const { error } = await sb.from('karyawan').upsert([kary], { onConflict: 'id' });
+    if (error) throw error;
+  } catch(e) {
+    // fallback localStorage
+    const idx = allKaryawan.findIndex(k => k.id === kary.id);
+    if (idx >= 0) allKaryawan[idx] = kary;
+    else allKaryawan.push(kary);
+    localStorage.setItem('karyawan', JSON.stringify(allKaryawan));
+  }
+}
+
+function renderKaryawan() {
+  const q = (document.getElementById('filter-karyawan')?.value || '').toLowerCase();
+  const st = document.getElementById('filter-status-karyawan')?.value || '';
+  let list = allKaryawan;
+  if (q) list = list.filter(k => k.nama?.toLowerCase().includes(q) || k.id_karyawan?.toLowerCase().includes(q));
+  if (st) list = list.filter(k => k.status === st);
+
+  if (!list.length) {
+    document.getElementById('tbl-karyawan').innerHTML = `<table><tr class="empty-row"><td colspan="6">Belum ada karyawan terdaftar. Klik "+ Tambah Karyawan" untuk mulai.</td></tr></table>`;
+    return;
+  }
+
+  document.getElementById('tbl-karyawan').innerHTML = `<table>
+    <thead><tr>
+      <th>Nama</th><th>ID Karyawan</th><th>Jabatan</th><th>No. HP</th><th>Status</th><th>Aksi</th>
+    </tr></thead>
+    <tbody>
+      ${list.map(k => {
+        const lokasi = getLokasiKaryawan(k.id_karyawan);
+        return `<tr>
+          <td>
+            <strong>${esc(k.nama)}</strong>
+            ${lokasi ? `<div style="font-size:11px; color:var(--accent); margin-top:2px;">📍 ${esc(lokasi)}</div>` : ''}
+          </td>
+          <td style="color:var(--muted); font-family:monospace;">${esc(k.id_karyawan)}</td>
+          <td>${esc(k.jabatan || '—')}</td>
+          <td>${esc(k.no_hp || '—')}</td>
+          <td>
+            <label class="toggle" title="${k.status === 'aktif' ? 'Klik untuk nonaktifkan' : 'Klik untuk aktifkan'}">
+              <input type="checkbox" ${k.status === 'aktif' ? 'checked' : ''} onchange="toggleStatusKaryawan('${k.id_karyawan}', this.checked)">
+              <span class="toggle-slider"></span>
+            </label>
+            <span style="font-size:12px; margin-left:6px;" class="${k.status === 'aktif' ? 'badge badge-aktif' : 'badge badge-nonaktif'}">
+              ${k.status === 'aktif' ? 'Aktif' : 'Nonaktif'}
+            </span>
+          </td>
+          <td>
+            <div style="display:flex; gap:6px;">
+              <button class="btn btn-outline btn-sm" onclick="openModalKaryawan('${k.id_karyawan}')">✏️ Edit</button>
+              <button class="btn btn-outline btn-sm" onclick="openModalAssign('${k.id_karyawan}')">📍 Assign</button>
+              <button class="btn btn-danger btn-sm" onclick="hapusKaryawan('${k.id_karyawan}')">🗑️</button>
+            </div>
+          </td>
+        </tr>`;
+      }).join('')}
+    </tbody>
+  </table>`;
+}
+
+function getLokasiKaryawan(idKaryawan) {
+  const assign = allAssign.find(a => a.id_karyawan === idKaryawan);
+  if (!assign) return null;
+  const lok = allLokasi.find(l => l.id === assign.id_lokasi);
+  return lok ? lok.nama : null;
+}
+
+function openModalKaryawan(idKaryawan = null) {
+  document.getElementById('kary-edit-id').value = '';
+  document.getElementById('kary-nama').value = '';
+  document.getElementById('kary-id').value = '';
+  document.getElementById('kary-jabatan').value = '';
+  document.getElementById('kary-hp').value = '';
+  document.getElementById('kary-status').value = 'aktif';
+  document.getElementById('kary-catatan').value = '';
+  document.getElementById('modal-karyawan-title').textContent = 'Tambah Karyawan';
+
+  if (idKaryawan) {
+    const k = allKaryawan.find(x => x.id_karyawan === idKaryawan);
+    if (k) {
+      document.getElementById('kary-edit-id').value = k.id || '';
+      document.getElementById('kary-nama').value = k.nama || '';
+      document.getElementById('kary-id').value = k.id_karyawan || '';
+      document.getElementById('kary-jabatan').value = k.jabatan || '';
+      document.getElementById('kary-hp').value = k.no_hp || '';
+      document.getElementById('kary-status').value = k.status || 'aktif';
+      document.getElementById('kary-catatan').value = k.catatan || '';
+      document.getElementById('modal-karyawan-title').textContent = 'Edit Karyawan';
+    }
+  }
+  document.getElementById('modal-karyawan').classList.add('show');
+}
+
+async function saveKaryawan() {
+  const nama = document.getElementById('kary-nama').value.trim();
+  const id_karyawan = document.getElementById('kary-id').value.trim();
+  if (!nama || !id_karyawan) { alert('Nama dan ID Karyawan wajib diisi!'); return; }
+
+  const kary = {
+    nama,
+    id_karyawan,
+    jabatan: document.getElementById('kary-jabatan').value.trim(),
+    no_hp: document.getElementById('kary-hp').value.trim(),
+    status: document.getElementById('kary-status').value,
+    catatan: document.getElementById('kary-catatan').value.trim(),
+    updated_at: new Date().toISOString()
+  };
+
+  const editId = document.getElementById('kary-edit-id').value;
+  if (editId) kary.id = editId;
+
+  // Try Supabase first
+  let saved = false;
+  try {
+    if (editId) {
+      const { error } = await sb.from('karyawan').update(kary).eq('id', editId);
+      if (!error) saved = true;
+    } else {
+      const { data, error } = await sb.from('karyawan').insert([kary]).select();
+      if (!error && data) { kary.id = data[0].id; saved = true; }
+    }
+  } catch(e) {}
+
+  if (!saved) {
+    // fallback localStorage
+    kary.id = kary.id || Date.now().toString();
+    const idx = allKaryawan.findIndex(k => k.id_karyawan === id_karyawan);
+    if (idx >= 0) allKaryawan[idx] = kary;
+    else allKaryawan.push(kary);
+    localStorage.setItem('karyawan', JSON.stringify(allKaryawan));
+  } else {
+    await loadKaryawan();
+  }
+
+  closeModal('modal-karyawan');
+  renderKaryawan();
+  renderOverview();
+  alert('✅ Data karyawan berhasil disimpan!');
+}
+
+async function toggleStatusKaryawan(id_karyawan, isAktif) {
+  const status = isAktif ? 'aktif' : 'nonaktif';
+  let saved = false;
+  try {
+    const { error } = await sb.from('karyawan').update({ status, updated_at: new Date().toISOString() }).eq('id_karyawan', id_karyawan);
+    if (!error) saved = true;
+  } catch(e) {}
+
+  const k = allKaryawan.find(x => x.id_karyawan === id_karyawan);
+  if (k) k.status = status;
+  if (!saved) localStorage.setItem('karyawan', JSON.stringify(allKaryawan));
+
+  renderKaryawan();
+  renderOverview();
+}
+
+async function hapusKaryawan(id_karyawan) {
+  if (!confirm(`Yakin hapus karyawan ${id_karyawan}? Data absensi tidak ikut terhapus.`)) return;
+  try {
+    await sb.from('karyawan').delete().eq('id_karyawan', id_karyawan);
+  } catch(e) {}
+  allKaryawan = allKaryawan.filter(k => k.id_karyawan !== id_karyawan);
+  localStorage.setItem('karyawan', JSON.stringify(allKaryawan));
+  renderKaryawan();
+}
+
+// ═══════════════════════════════════════════
+// ─── LOKASI ───
+// ═══════════════════════════════════════════
+
+async function loadLokasi() {
+  try {
+    const { data, error } = await sb.from('lokasi').select('*').order('nama');
+    if (!error && data) { allLokasi = data; renderLokasi(); updateLokasiSelect(); return; }
+  } catch(e) {}
+  allLokasi = JSON.parse(localStorage.getItem('lokasi') || '[]');
+  renderLokasi();
+  updateLokasiSelect();
+}
+
+function renderLokasi() {
+  if (!allLokasi.length) {
+    document.getElementById('loc-container').innerHTML = `<div class="loading-bar">Belum ada lokasi. Klik "+ Tambah Lokasi" untuk mulai.</div>`;
+    return;
+  }
+  document.getElementById('loc-container').innerHTML = `<div class="loc-grid">
+    ${allLokasi.map(l => {
+      const jmlKary = allAssign.filter(a => a.id_lokasi === l.id).length;
+      return `<div class="loc-card">
+        <div class="loc-name">📍 ${esc(l.nama)}</div>
+        <div class="loc-sub">${esc(l.alamat || 'Tidak ada deskripsi')}</div>
+        <span class="loc-badge">👷 ${jmlKary} karyawan</span>
+        <div class="loc-coords">
+          Lat: ${l.lat || '—'}<br>
+          Lng: ${l.lng || '—'}<br>
+          Radius: ${l.radius || 100}m
+        </div>
+        <div style="margin-bottom:10px;">
+          <span class="badge ${l.status === 'aktif' ? 'badge-aktif' : 'badge-nonaktif'}">
+            ${l.status === 'aktif' ? '✅ Aktif' : '🔴 Selesai'}
+          </span>
+        </div>
+        <div class="loc-actions">
+          <button class="btn btn-outline btn-sm" onclick="openModalLokasi('${l.id}')">✏️ Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="hapusLokasi('${l.id}')">🗑️ Hapus</button>
+        </div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+function updateLokasiSelect() {
+  const selects = ['assign-lokasi-select', 'filter-assign-lokasi'];
+  selects.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const first = el.options[0];
+    el.innerHTML = '';
+    el.appendChild(first);
+    allLokasi.forEach(l => {
+      const opt = document.createElement('option');
+      opt.value = l.id;
+      opt.textContent = l.nama;
+      el.appendChild(opt);
+    });
+  });
+}
+
+function openModalLokasi(lokasiId = null) {
+  document.getElementById('lok-edit-id').value = '';
+  document.getElementById('lok-nama').value = '';
+  document.getElementById('lok-alamat').value = '';
+  document.getElementById('lok-lat').value = '';
+  document.getElementById('lok-lng').value = '';
+  document.getElementById('lok-radius').value = '100';
+  document.getElementById('lok-status').value = 'aktif';
+  document.getElementById('modal-lokasi-title').textContent = 'Tambah Lokasi / Project';
+
+  if (lokasiId) {
+    const l = allLokasi.find(x => x.id === lokasiId);
+    if (l) {
+      document.getElementById('lok-edit-id').value = l.id || '';
+      document.getElementById('lok-nama').value = l.nama || '';
+      document.getElementById('lok-alamat').value = l.alamat || '';
+      document.getElementById('lok-lat').value = l.lat || '';
+      document.getElementById('lok-lng').value = l.lng || '';
+      document.getElementById('lok-radius').value = l.radius || 100;
+      document.getElementById('lok-status').value = l.status || 'aktif';
+      document.getElementById('modal-lokasi-title').textContent = 'Edit Lokasi / Project';
+    }
+  }
+  document.getElementById('modal-lokasi').classList.add('show');
+}
+
+async function saveLokasi() {
+  const nama   = document.getElementById('lok-nama').value.trim();
+  const lat    = parseFloat(document.getElementById('lok-lat').value);
+  const lng    = parseFloat(document.getElementById('lok-lng').value);
+  const radius = parseInt(document.getElementById('lok-radius').value) || 100;
+  if (!nama) { alert('Nama lokasi wajib diisi!'); return; }
+  if (isNaN(lat) || isNaN(lng)) { alert('Koordinat GPS wajib diisi dengan benar!'); return; }
+
+  const lok = {
+    nama,
+    alamat: document.getElementById('lok-alamat').value.trim(),
+    lat, lng, radius,
+    status: document.getElementById('lok-status').value,
+    updated_at: new Date().toISOString()
+  };
+
+  const editId = document.getElementById('lok-edit-id').value;
+  if (editId) lok.id = editId;
+
+  let saved = false;
+  try {
+    if (editId) {
+      const { error } = await sb.from('lokasi').update(lok).eq('id', editId);
+      if (!error) saved = true;
+    } else {
+      const { data, error } = await sb.from('lokasi').insert([lok]).select();
+      if (!error && data) { lok.id = data[0].id; saved = true; }
+    }
+  } catch(e) {}
+
+  if (!saved) {
+    lok.id = lok.id || Date.now().toString();
+    const idx = allLokasi.findIndex(l => l.id === lok.id);
+    if (idx >= 0) allLokasi[idx] = lok;
+    else allLokasi.push(lok);
+    localStorage.setItem('lokasi', JSON.stringify(allLokasi));
+  } else {
+    await loadLokasi();
+  }
+
+  closeModal('modal-lokasi');
+  renderLokasi();
+  updateLokasiSelect();
+  alert('✅ Lokasi berhasil disimpan!');
+}
+
+async function hapusLokasi(id) {
+  if (!confirm('Yakin hapus lokasi ini? Semua assign karyawan ke lokasi ini akan ikut terhapus.')) return;
+  try {
+    await sb.from('assign_lokasi').delete().eq('id_lokasi', id);
+    await sb.from('lokasi').delete().eq('id', id);
+  } catch(e) {}
+  allLokasi = allLokasi.filter(l => l.id !== id);
+  allAssign = allAssign.filter(a => a.id_lokasi !== id);
+  localStorage.setItem('lokasi', JSON.stringify(allLokasi));
+  localStorage.setItem('assign', JSON.stringify(allAssign));
+  renderLokasi();
+  renderAssign();
+  updateLokasiSelect();
+}
+
+// ═══════════════════════════════════════════
+// ─── ASSIGN ───
+// ═══════════════════════════════════════════
+
+async function loadAssign() {
+  try {
+    const { data, error } = await sb.from('assign_lokasi').select('*');
+    if (!error && data) { allAssign = data; renderAssign(); return; }
+  } catch(e) {}
+  allAssign = JSON.parse(localStorage.getItem('assign') || '[]');
+  renderAssign();
+}
+
+function openModalAssign(idKaryawan) {
+  const k = allKaryawan.find(x => x.id_karyawan === idKaryawan);
+  if (!k) return;
+  document.getElementById('assign-kary-id').value = idKaryawan;
+  document.getElementById('assign-kary-nama').textContent = k.nama;
+  document.getElementById('assign-kary-id-label').textContent = idKaryawan;
+  document.getElementById('assign-tgl-mulai').value = new Date().toISOString().split('T')[0];
+  document.getElementById('assign-ket').value = '';
+
+  // Set current assignment
+  const cur = allAssign.find(a => a.id_karyawan === idKaryawan);
+  document.getElementById('assign-lokasi-select').value = cur ? cur.id_lokasi : '';
+
+  document.getElementById('modal-assign').classList.add('show');
+}
+
+async function saveAssign() {
+  const id_karyawan = document.getElementById('assign-kary-id').value;
+  const id_lokasi   = document.getElementById('assign-lokasi-select').value;
+  if (!id_karyawan || !id_lokasi) { alert('Pilih lokasi terlebih dahulu!'); return; }
+
+  const assign = {
+    id_karyawan,
+    id_lokasi,
+    tgl_mulai: document.getElementById('assign-tgl-mulai').value,
+    keterangan: document.getElementById('assign-ket').value.trim(),
+    updated_at: new Date().toISOString()
+  };
+
+  let saved = false;
+  try {
+    // Upsert by id_karyawan
+    const existing = allAssign.find(a => a.id_karyawan === id_karyawan);
+    if (existing) {
+      const { error } = await sb.from('assign_lokasi').update(assign).eq('id_karyawan', id_karyawan);
+      if (!error) saved = true;
+    } else {
+      const { data, error } = await sb.from('assign_lokasi').insert([assign]).select();
+      if (!error && data) { assign.id = data[0].id; saved = true; }
+    }
+  } catch(e) {}
+
+  if (!saved) {
+    assign.id = assign.id || Date.now().toString();
+    const idx = allAssign.findIndex(a => a.id_karyawan === id_karyawan);
+    if (idx >= 0) allAssign[idx] = assign;
+    else allAssign.push(assign);
+    localStorage.setItem('assign', JSON.stringify(allAssign));
+  } else {
+    await loadAssign();
+  }
+
+  closeModal('modal-assign');
+  renderAssign();
+  renderKaryawan();
+  renderLokasi();
+  alert('✅ Assign lokasi berhasil disimpan!');
+}
+
+function renderAssign() {
+  const filterLok = document.getElementById('filter-assign-lokasi')?.value || '';
+  let list = allKaryawan;
+  if (filterLok) {
+    const assignedIds = allAssign.filter(a => a.id_lokasi === filterLok).map(a => a.id_karyawan);
+    list = list.filter(k => assignedIds.includes(k.id_karyawan));
+  }
+
+  if (!list.length) {
+    document.getElementById('tbl-assign').innerHTML = `<div class="loading-bar">Belum ada karyawan terdaftar.</div>`;
+    return;
+  }
+
+  document.getElementById('tbl-assign').innerHTML = `
+    ${list.map(k => {
+      const assign = allAssign.find(a => a.id_karyawan === k.id_karyawan);
+      const lok = assign ? allLokasi.find(l => l.id === assign.id_lokasi) : null;
+      return `<div class="assign-row">
+        <div class="assign-info">
+          <div class="assign-name">${esc(k.nama)}
+            <span class="badge ${k.status === 'aktif' ? 'badge-aktif' : 'badge-nonaktif'}" style="margin-left:6px; font-size:10px;">
+              ${k.status === 'aktif' ? 'Aktif' : 'Nonaktif'}
+            </span>
+          </div>
+          <div class="assign-id">${esc(k.id_karyawan)} ${k.jabatan ? '· ' + k.jabatan : ''}</div>
+          <div class="assign-loc">${lok ? '📍 ' + lok.nama : '⚪ Belum di-assign ke lokasi'}</div>
+          ${assign?.tgl_mulai ? `<div style="font-size:11px; color:var(--muted);">Sejak ${assign.tgl_mulai}</div>` : ''}
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="openModalAssign('${k.id_karyawan}')">
+          ${lok ? '🔄 Pindah' : '📍 Assign'}
+        </button>
+      </div>`;
+    }).join('')}
+  `;
+}
+
 // ─── UTILS ───
 function esc(s) { return String(s||'').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
@@ -631,11 +1350,20 @@ function lihatFoto(url, label) {
   document.getElementById('modal-foto').classList.add('show');
 }
 
+function closeModal(id) {
+  document.getElementById(id).classList.remove('show');
+}
+
 function showPage(name, el) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById('page-'+name).classList.add('active');
   el.classList.add('active');
+  // Refresh page-specific content
+  if (name === 'karyawan') renderKaryawan();
+  if (name === 'lokasi') { renderLokasi(); }
+  if (name === 'assign') { renderAssign(); updateLokasiSelect(); }
+  if (name === 'overview') renderOverview();
 }
 </script>
 </body>
