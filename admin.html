@@ -732,8 +732,8 @@ function renderShift() {
       <td>${s.jam_masuk||'—'}</td><td>${s.jam_pulang||'—'}</td>
       <td>${s.toleransi_menit!=null?s.toleransi_menit+' menit':'—'}</td>
       <td><div style="display:flex;gap:6px;">
-        <button class="btn btn-outline btn-sm" onclick="openModalShift(${s.id})">✏️ Edit</button>
-        <button class="btn btn-danger btn-sm" onclick="hapusShift(${s.id})">🗑️</button>
+        <button class="btn btn-outline btn-sm" onclick="openModalShift('${s.id}')">✏️ Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="hapusShift('${s.id}')">🗑️</button>
       </div></td>
     </tr>`).join('')}
   </tbody></table>`;
