@@ -562,10 +562,7 @@ if (tipe === 'masuk') {
 if (tipe === 'pulang') {
   if (jamSekarang > shift.jam_pulang) {
     status_pulang = 'lembur';
-    is_lembur = true;
-  } else {
-    status_pulang = 'normal';
-  }
+    is_lembur = true;} else {status_pulang = 'normal';}
 }
   
 // Kamera
@@ -808,8 +805,19 @@ if (karyawan?.shift_id) {
     .single();
 
   if (shiftDetail && !shiftDetail.is_libur) {
-    const jamSekarang = new Date().toTimeString().slice(0,5);
+    const jamSekarang = new Date().toTimeString().slice(0);
+    menit_telat = hitungTelat(shiftDetail.jam_masuk, jamSekarang, toleransi);
+    status_masuk = menit_telat > 0 ? 'telat' : 'tepat_waktu';
 
+  if (tipeAbsen === 'pulang') {
+    if (jamSekarang > shiftDetail.jam_pulang) {
+      status_pulang = 'lembur';
+      is_lembur = true;
+    } else {
+      status_pulang = 'normal';
+    }
+  }
+}
     // ambil toleransi
     const { data: shiftHeader } = await db
       .from('shift')
