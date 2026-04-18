@@ -769,6 +769,14 @@ async function submitAbsen() {
   if (!fotoDataURL) { toast('Ambil foto selfie dulu!', 'error'); return; }
   if (!gpsData) { toast('Deteksi lokasi GPS dulu!', 'error'); return; }
   if (!shiftDetail || shiftDetail.is_libur) {toast("Hari ini libur", "warn"); return; }
+  if (
+    Math.abs(gpsData.lat) > 90 ||
+    Math.abs(gpsData.lng) > 180 ||
+    (gpsData.lat === 0 && gpsData.lng === 0)
+  ) {
+    toast('Koordinat GPS tidak valid, coba lagi', 'error');
+    return; // ✅ aman karena di dalam function
+  }
 
   const btn = document.getElementById('btn-submit');
   btn.disabled = true;
@@ -844,17 +852,6 @@ lokasiKerja = {
   const jamFull = now.toISOString();
   // const jarak = Math.round(hitungJarak(gpsData.lat, gpsData.lng, lokasiLat, lokasiLng));
   
-  
-  // Validasi koordinat aneh
-if (
-  Math.abs(gpsData.lat) > 90 ||
-  Math.abs(gpsData.lng) > 180 ||
-  gpsData.lat === 0 && gpsData.lng === 0
-) {
-  toast('Koordinat GPS tidak valid, coba lagi', 'error');
-  return;
-}
-
 // Validasi akurasi
 if (gpsData.acc > 1000) {
   toast('Akurasi GPS terlalu rendah, coba di luar ruangan', 'warn');
