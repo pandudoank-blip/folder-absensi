@@ -664,7 +664,7 @@ function deteksiGPS() {
   },
   { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
 );
-  
+}  
 // Upload foto ke Cloudinary (opsional)
 async function uploadFoto(dataURL) {
   if (!CLOUDINARY_CLOUD_NAME || CLOUDINARY_CLOUD_NAME === 'MASUKKAN_CLOUD_NAME') return null;
