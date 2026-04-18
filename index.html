@@ -602,70 +602,69 @@ function deteksiGPS() {
   }
 
   navigator.geolocation.getCurrentPosition(
-    successHandler,
-  errorHandler,
+  (pos) => {
+    const lat = pos.coords.latitude;
+    const lng = pos.coords.longitude;
+    const acc = Math.round(pos.coords.accuracy);
+
+    if (acc > 1000) {
+      toast('GPS belum akurat, tunggu sebentar lalu coba lagi', 'warn');
+      return;
+    }
+
+    if (
+      Math.abs(lat) > 90 ||
+      Math.abs(lng) > 180 ||
+      (lat === 0 && lng === 0)
+    ) {
+      toast('Koordinat GPS tidak valid, coba lagi', 'error');
+      return;
+    }
+
+    gpsData = { lat, lng, acc };
+
+    const dot = document.getElementById('gps-dot');
+    const txt = document.getElementById('gps-text');
+
+    dot.className = 'gps-dot ok';
+    txt.textContent = 'Lokasi terdeteksi';
+
+    const coords = document.getElementById('gps-coords');
+    coords.textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)} (akurasi ±${acc}m)`;
+    coords.style.display = 'block';
+
+    const jarakMeter = hitungJarak(lat, lng, lokasiKerja.lat, lokasiKerja.lng);
+    const jarak = Math.round(jarakMeter);
+    const jarakKm = (jarakMeter / 1000).toFixed(2);
+
+    const badge = document.getElementById('radius-badge');
+
+    let jarakText = jarakMeter < 1000
+      ? `${Math.round(jarakMeter)} m`
+      : `${jarakKm} km`;
+
+    if (jarak <= lokasiKerja.radius) {
+      badge.className = 'radius-badge ok';
+      badge.innerHTML = `✅ Di area kantor (${jarakKm} km dari kantor)`;
+    } else {
+      badge.className = 'radius-badge out';
+      badge.innerHTML = `⚠️ Di luar area kantor (${jarakText} dari kantor)`;
+    }
+
+    toast('Lokasi berhasil dideteksi ✓', 'success');
+  },
+  (err) => {
+    const dot = document.getElementById('gps-dot');
+    const txt = document.getElementById('gps-text');
+
+    dot.className = 'gps-dot err';
+    txt.textContent = 'Gagal deteksi GPS';
+
+    toast('GPS gagal diakses', 'error');
+  },
   { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
 );
-    (pos) => {
-      // gpsData = { lat: pos.coords.latitude, lng: pos.coords.longitude, acc: Math.round(pos.coords.accuracy) };
-      const lat = pos.coords.latitude;
-      const lng = pos.coords.longitude;
-      const acc = Math.round(pos.coords.accuracy);
-
-// 🚫 Tolak kalau akurasi jelek
-if (acc > 1000) {
-  toast('GPS belum akurat, tunggu sebentar lalu coba lagi', 'warn');
-  return;
-}
-
-// 🚫 Tolak koordinat aneh
-if (
-  Math.abs(lat) > 90 ||
-  Math.abs(lng) > 180 ||
-  (lat === 0 && lng === 0)
-) {
-  toast('Koordinat GPS tidak valid, coba lagi', 'error');
-  return;
-}
-
-gpsData = { lat, lng, acc };
-      dot.className = 'gps-dot ok';
-      txt.textContent = 'Lokasi terdeteksi';
-
-      const coords = document.getElementById('gps-coords');
-      coords.textContent = `${gpsData.lat.toFixed(6)}, ${gpsData.lng.toFixed(6)} (akurasi ±${gpsData.acc}m)`;
-      coords.style.display = 'block';
-
-      // const jarak = Math.round(hitungJarak(gpsData.lat, gpsData.lng, KANTOR_LAT, KANTOR_LNG));
-      const jarak = Math.round(hitungJarak(gpsData.lat, gpsData.lng, lokasiKerja.lat, lokasiKerja.lng));
-      const jarakMeter = hitungJarak(gpsData.lat, gpsData.lng, lokasiKerja.lat, lokasiKerja.lng);
-      const jarak = Math.round(jarakMeter);
-      const jarakKm = (jarakMeter / 1000).toFixed(2);
-      const badge = document.getElementById('radius-badge');
-      let jarakText = '';
-      if (jarakMeter < 1000) {jarakText = `${Math.round(jarakMeter)} m`;
-      } else {jarakText = `${(jarakMeter / 1000).toFixed(2)} km`;
-      }
-      if (jarak <= lokasiKerja.radius) {
-        badge.className = 'radius-badge ok';
-        badge.innerHTML = `✅ Di area kantor (${jarakKm} km dari kantor)`;
-      } else {
-        badge.className = 'radius-badge out';
-        badge.innerHTML = `⚠️ Di luar area kantor (${jarakText} dari kantor)`;
-      }
-      toast('Lokasi berhasil dideteksi ✓', 'success');
-    },
-    (err) => {
-      dot.className = 'gps-dot err';
-      txt.textContent = 'Gagal deteksi GPS';
-      // Fallback demo
-      gpsData = { lat: KANTOR_LAT + (Math.random()-0.5)*0.001, lng: KANTOR_LNG + (Math.random()-0.5)*0.001, acc: 15 };
-      toast('GPS gagal – pakai lokasi demo', 'warn');
-    },
-    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-  );
-}
-
+  
 // Upload foto ke Cloudinary (opsional)
 async function uploadFoto(dataURL) {
   if (!CLOUDINARY_CLOUD_NAME || CLOUDINARY_CLOUD_NAME === 'MASUKKAN_CLOUD_NAME') return null;
