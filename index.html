@@ -522,6 +522,57 @@ function pilihTipe(tipe) {
   document.getElementById('btn-pulang').classList.toggle('selected', tipe === 'pulang');
 }
 
+function getShiftHariIni(id_karyawan) {
+  const k = allKaryawan.find(x => x.id_karyawan === id_karyawan);
+  if (!k || !k.shift_id) return null;
+
+  const hari = new Date().getDay();
+
+  return allShiftDetail.find(s =>
+    s.shift_id === k.shift_id && s.hari === hari
+  );
+}
+
+function hitungTelat(jamMasuk, jamSekarang, toleransi = 0) {
+  const t1 = new Date(`1970-01-01T${jamMasuk}`);
+  const t2 = new Date(`1970-01-01T${jamSekarang}`);
+
+  const diff = (t2 - t1) / 60000;
+  return diff > toleransi ? Math.floor(diff) : 0;
+}
+
+const now = new Date();
+const jamSekarang = now.toTimeString().slice(0,5);
+
+const shift = getShiftHariIni(id_karyawan);
+
+let status_masuk = null;
+let menit_telat = 0;
+let status_pulang = null;
+let is_lembur = false;
+
+if (!shift || shift.is_libur) {
+  alert("Hari ini libur");
+  return;
+}
+
+if (tipe === 'masuk') {
+  const shiftHeader = allShift.find(s => s.id === shift.shift_id);
+  const toleransi = shiftHeader?.toleransi_telat || 0;
+
+  menit_telat = hitungTelat(shift.jam_masuk, jamSekarang, toleransi);
+  status_masuk = menit_telat > 0 ? 'telat' : 'tepat_waktu';
+}
+
+if (tipe === 'pulang') {
+  if (jamSekarang > shift.jam_pulang) {
+    status_pulang = 'lembur';
+    is_lembur = true;
+  } else {
+    status_pulang = 'normal';
+  }
+}
+  
 // Kamera
 function handleCameraClick() {
   if (kameraAktif || fotoDataURL) return;
@@ -813,6 +864,10 @@ const diKantor = jarak <= lokasiRadius;
     akurasi_gps: gpsData.acc,
     jarak_kantor: jarak,
     di_area_kantor: diKantor,
+    status_masuk,
+    menit_telat,
+    status_pulang,
+    is_lembur
     foto_url: null, // penting kalau kolom ada
     metode: 'mobile'
     }]);
