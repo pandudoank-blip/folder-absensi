@@ -585,8 +585,8 @@ function hitungJarak(lat1, lon1, lat2, lon2) {
 }
 
 function deteksiGPS() {
-  const idKary = document.getElementById('input-id').value.trim();
-  if (!idKary) {
+  const idKaryawan = document.getElementById('input-id').value.trim();
+  if (!idKaryawan) {
     toast('Isi ID karyawan dulu sebelum deteksi GPS', 'warn');
     return;
   }
@@ -787,10 +787,11 @@ async function cekKaryawanDanLokasi(idKaryawan) {
 async function submitAbsen() {
   const nama = document.getElementById('input-nama').value.trim();
   const idKaryawan = document.getElementById('input-id').value.trim();
-  const eval = await evaluasiAbsensi(idKaryawan, tipeAbsen);
+  // const eval = await evaluasiAbsensi(idKaryawan, tipeAbsen);
+  const hasilEval = await evaluasiAbsensi(idKaryawan, tipeAbsen);
 
   if (!nama) { toast('Masukkan nama lengkap dulu!', 'error'); return; }
-  if (!idKary) { toast('Masukkan ID karyawan!', 'error'); return; }
+  if (!idKaryawan) { toast('Masukkan ID karyawan!', 'error'); return; }
   if (!fotoDataURL) { toast('Ambil foto selfie dulu!', 'error'); return; }
   if (!gpsData) { toast('Deteksi lokasi GPS dulu!', 'error'); return; }
 
@@ -799,7 +800,7 @@ async function submitAbsen() {
   btn.textContent = '⏳ Memverifikasi ID...';
 
   // ─── Cek status & ambil lokasi ───
-  const cek = await cekKaryawanDanLokasi(idKary);
+  const cek = await cekKaryawanDanLokasi(idKaryawan);
   if (!cek.ok) {
     toast(cek.msg, 'error');
     btn.disabled = false;
@@ -866,7 +867,7 @@ const diKantor = jarak <= lokasiRadius;
  try {
   const { error } = await db.from('absensi').insert([{
     nama,
-    id_karyawan: idKary,
+    id_karyawan: idKaryawan,
     tipe: tipeAbsen,
     jam,
     tanggal,
@@ -877,7 +878,7 @@ const diKantor = jarak <= lokasiRadius;
     jarak_kantor: jarak,
     di_area_kantor: diKantor,
     foto_url: null, // penting kalau kolom ada
-    metode: 'mobile'
+    metode: 'mobile',
     telat_menit: eval?.telat || 0,
     lembur_menit: eval?.lembur || 0,
     is_libur: eval?.is_libur || false,
@@ -890,7 +891,7 @@ const diKantor = jarak <= lokasiRadius;
     document.getElementById('success-screen').classList.add('show');
     document.getElementById('detail-box').innerHTML = `
       <div class="detail-row"><span class="detail-key">Nama</span><span class="detail-val">${nama}</span></div>
-      <div class="detail-row"><span class="detail-key">ID</span><span class="detail-val">${idKary}</span></div>
+      <div class="detail-row"><span class="detail-key">ID</span><span class="detail-val">${idKaryawan}</span></div>
       <div class="detail-row"><span class="detail-key">Tipe</span><span class="detail-val">${tipeAbsen === 'masuk' ? '🟢 Masuk' : '🔴 Pulang'}</span></div>
       <div class="detail-row"><span class="detail-key">Jam</span><span class="detail-val">${jam}</span></div>
       <div class="detail-row"><span class="detail-key">Tanggal</span><span class="detail-val">${now.toLocaleDateString('id-ID', {day:'numeric',month:'long',year:'numeric'})}</span></div>
