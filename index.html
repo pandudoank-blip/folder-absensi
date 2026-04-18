@@ -797,11 +797,6 @@ const { data: karyawan } = await db
   .eq('id_karyawan', idKary)
   .single();
 
-let status_masuk = null;
-let menit_telat = 0;
-let status_pulang = null;
-let is_lembur = false;
-
 if (karyawan?.shift_id) {
   const hari = new Date().getDay();
 
@@ -823,24 +818,6 @@ if (karyawan?.shift_id) {
       .single();
 
     const toleransi = shiftHeader?.toleransi_telat || 0;
-
-    if (tipeAbsen === 'masuk') {
-      const diff =
-        (new Date(`1970-01-01T${jamSekarang}`) -
-         new Date(`1970-01-01T${shiftDetail.jam_masuk}`)) / 60000;
-
-      menit_telat = diff > toleransi ? Math.floor(diff) : 0;
-      status_masuk = menit_telat > 0 ? 'telat' : 'tepat_waktu';
-    }
-
-    if (tipeAbsen === 'pulang') {
-      if (jamSekarang > shiftDetail.jam_pulang) {
-        status_pulang = 'lembur';
-        is_lembur = true;
-      } else {
-        status_pulang = 'normal';
-      }
-    }
   }
 }
   const lokasiLat    = cek.lat;
