@@ -602,8 +602,33 @@ function deteksiGPS() {
   }
 
   navigator.geolocation.getCurrentPosition(
+    successHandler,
+  errorHandler,
+  { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+);
     (pos) => {
-      gpsData = { lat: pos.coords.latitude, lng: pos.coords.longitude, acc: Math.round(pos.coords.accuracy) };
+      // gpsData = { lat: pos.coords.latitude, lng: pos.coords.longitude, acc: Math.round(pos.coords.accuracy) };
+      const lat = pos.coords.latitude;
+      const lng = pos.coords.longitude;
+      const acc = Math.round(pos.coords.accuracy);
+
+// 🚫 Tolak kalau akurasi jelek
+if (acc > 1000) {
+  toast('GPS belum akurat, tunggu sebentar lalu coba lagi', 'warn');
+  return;
+}
+
+// 🚫 Tolak koordinat aneh
+if (
+  Math.abs(lat) > 90 ||
+  Math.abs(lng) > 180 ||
+  (lat === 0 && lng === 0)
+) {
+  toast('Koordinat GPS tidak valid, coba lagi', 'error');
+  return;
+}
+
+gpsData = { lat, lng, acc };
       dot.className = 'gps-dot ok';
       txt.textContent = 'Lokasi terdeteksi';
 
