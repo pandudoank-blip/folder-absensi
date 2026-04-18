@@ -634,6 +634,48 @@ async function uploadFoto(dataURL) {
   } catch { return null; }
 }
 
+// ─── CEK STATUS KARYAWAN & LOKASI ───
+async function cekKaryawanDanLokasi(idKaryawan) {
+  // Coba dari Supabase
+  try {
+    const { data: karyData } = await db.from('karyawan').select('*').eq('id_karyawan', idKaryawan).single();
+    if (karyData) {
+      if (karyData.status === 'nonaktif') {
+        return { ok: false, msg: 'ID karyawan ini sudah dinonaktifkan. Hubungi admin.' };
+      }
+      // Ambil lokasi assign
+      const { data: assignData } = await db.from('assign_lokasi').select('*').eq('id_karyawan', idKaryawan).single();
+      if (assignData) {
+        const { data: lokData } = await db.from('lokasi').select('*').eq('id', assignData.id_lokasi).single();
+        if (lokData && lokData.lat && lokData.lng) {
+          return { ok: true, lat: lokData.lat, lng: lokData.lng, radius: lokData.radius || 100, namaLokasi: lokData.nama };
+        }
+      }
+      return { ok: true, lat: KANTOR_LAT, lng: KANTOR_LNG, radius: RADIUS_METER, namaLokasi: 'Kantor' };
+    }
+  } catch(e) {}
+
+  // Fallback: cek localStorage (dari admin.html)
+  try {
+    const karyawan = JSON.parse(localStorage.getItem('karyawan') || '[]');
+    const k = karyawan.find(x => x.id_karyawan === idKaryawan);
+    if (k && k.status === 'nonaktif') {
+      return { ok: false, msg: 'ID karyawan ini sudah dinonaktifkan. Hubungi admin.' };
+    }
+    const assign = JSON.parse(localStorage.getItem('assign') || '[]');
+    const a = assign.find(x => x.id_karyawan === idKaryawan);
+    if (a) {
+      const lokasi = JSON.parse(localStorage.getItem('lokasi') || '[]');
+      const l = lokasi.find(x => x.id === a.id_lokasi);
+      if (l && l.lat && l.lng) {
+        return { ok: true, lat: l.lat, lng: l.lng, radius: l.radius || 100, namaLokasi: l.nama };
+      }
+    }
+  } catch(e) {}
+
+  return { ok: true, lat: KANTOR_LAT, lng: KANTOR_LNG, radius: RADIUS_METER, namaLokasi: 'Kantor' };
+}
+
 // Submit
 async function submitAbsen() {
   const nama = document.getElementById('input-nama').value.trim();
@@ -646,14 +688,29 @@ async function submitAbsen() {
 
   const btn = document.getElementById('btn-submit');
   btn.disabled = true;
+  btn.textContent = '⏳ Memverifikasi ID...';
+
+  // ─── Cek status & ambil lokasi ───
+  const cek = await cekKaryawanDanLokasi(idKary);
+  if (!cek.ok) {
+    toast(cek.msg, 'error');
+    btn.disabled = false;
+    btn.textContent = 'Kirim Absensi';
+    return;
+  }
+
+  const lokasiLat    = cek.lat;
+  const lokasiLng    = cek.lng;
+  const lokasiRadius = cek.radius;
+
   btn.textContent = '⏳ Menyimpan...';
 
   const now = new Date();
   const jam = now.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' });
   const tanggal = now.toISOString().split('T')[0];
   const jamFull = now.toISOString();
-  const jarak = Math.round(hitungJarak(gpsData.lat, gpsData.lng, KANTOR_LAT, KANTOR_LNG));
-  const diKantor = jarak <= RADIUS_METER;
+  const jarak = Math.round(hitungJarak(gpsData.lat, gpsData.lng, lokasiLat, lokasiLng));
+  const diKantor = jarak <= lokasiRadius;
 
   // Upload foto
   let fotoUrl = null;
@@ -691,7 +748,7 @@ async function submitAbsen() {
       <div class="detail-row"><span class="detail-key">Tipe</span><span class="detail-val">${tipeAbsen === 'masuk' ? '🟢 Masuk' : '🔴 Pulang'}</span></div>
       <div class="detail-row"><span class="detail-key">Jam</span><span class="detail-val">${jam}</span></div>
       <div class="detail-row"><span class="detail-key">Tanggal</span><span class="detail-val">${now.toLocaleDateString('id-ID', {day:'numeric',month:'long',year:'numeric'})}</span></div>
-      <div class="detail-row"><span class="detail-key">Lokasi</span><span class="detail-val">${diKantor ? '✅ Area kantor' : '⚠️ Luar kantor'} (${jarak}m)</span></div>
+      <div class="detail-row"><span class="detail-key">Lokasi</span><span class="detail-val">${diKantor ? '✅ ' + cek.namaLokasi : '⚠️ Luar area'} (${jarak}m)</span></div>
     `;
 
   } catch(err) {
