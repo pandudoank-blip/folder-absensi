@@ -494,6 +494,14 @@ let gpsData = null;
 let videoStream = null;
 let kameraAktif = false;
 
+// 🔥 TAMBAHAN
+let lokasiKerja = {
+  lat: KANTOR_LAT,
+  lng: KANTOR_LNG,
+  radius: RADIUS_METER,
+  nama: 'Kantor'
+};
+
 // Jam
 function updateJam() {
   const now = new Date();
@@ -598,9 +606,10 @@ function deteksiGPS() {
       coords.textContent = `${gpsData.lat.toFixed(6)}, ${gpsData.lng.toFixed(6)} (akurasi ±${gpsData.acc}m)`;
       coords.style.display = 'block';
 
-      const jarak = Math.round(hitungJarak(gpsData.lat, gpsData.lng, KANTOR_LAT, KANTOR_LNG));
+      // const jarak = Math.round(hitungJarak(gpsData.lat, gpsData.lng, KANTOR_LAT, KANTOR_LNG));
+      const jarak = Math.round(hitungJarak(gpsData.lat, gpsData.lng, lokasiKerja.lat, lokasiKerja.lng));
       const badge = document.getElementById('radius-badge');
-      if (jarak <= RADIUS_METER) {
+      if (jarak <= lokasiKerja.radius) {
         badge.className = 'radius-badge ok';
         badge.innerHTML = `✅ Di area kantor (${jarak}m dari kantor)`;
       } else {
@@ -638,15 +647,15 @@ async function uploadFoto(dataURL) {
 async function cekKaryawanDanLokasi(idKaryawan) {
   // Coba dari Supabase
   try {
-    const { data: karyData } = await db.from('karyawan').select('*').eq('id_karyawan', idKaryawan).single();
+    const { data: karyData } = await db.from('karyawan').select('*').eq('id_karyawan', idKaryawan).maybeSingle();
     if (karyData) {
       if (karyData.status === 'nonaktif') {
         return { ok: false, msg: 'ID karyawan ini sudah dinonaktifkan. Hubungi admin.' };
       }
       // Ambil lokasi assign
-      const { data: assignData } = await db.from('assign_lokasi').select('*').eq('id_karyawan', idKaryawan).single();
+      const { data: assignData } = await db.from('assign_lokasi').select('*').eq('id_karyawan', idKaryawan).maybeSingle();
       if (assignData) {
-        const { data: lokData } = await db.from('lokasi').select('*').eq('id', assignData.id_lokasi).single();
+        const { data: lokData } = await db.from('lokasi').select('*').eq('id', assignData.id_lokasi).maybeSingle();
         if (lokData && lokData.lat && lokData.lng) {
           return { ok: true, lat: lokData.lat, lng: lokData.lng, radius: lokData.radius || 100, namaLokasi: lokData.nama };
         }
@@ -702,6 +711,14 @@ async function submitAbsen() {
   const lokasiLat    = cek.lat;
   const lokasiLng    = cek.lng;
   const lokasiRadius = cek.radius;
+
+  // 🔥 sync ke global (biar konsisten)
+lokasiKerja = {
+  lat: cek.lat,
+  lng: cek.lng,
+  radius: cek.radius,
+  nama: cek.namaLokasi
+};
 
   btn.textContent = '⏳ Menyimpan...';
 
@@ -787,6 +804,29 @@ function toast(msg, type='') {
   el.classList.add('show');
   setTimeout(() => el.classList.remove('show'), 3200);
 }
+
+document.getElementById('input-id').addEventListener('change', async (e) => {
+  const id = e.target.value.trim();
+  if (!id) return;
+
+  const cek = await cekKaryawanDanLokasi(id);
+
+  if (!cek.ok) {
+    toast(cek.msg, 'error');
+    return;
+  }
+
+// 🔥 SET lokasi kerja dari assign
+  lokasiKerja = {
+    lat: cek.lat,
+    lng: cek.lng,
+    radius: cek.radius,
+    nama: cek.namaLokasi
+  };
+
+  console.log('Lokasi kerja:', lokasiKerja);
+});
+  
 </script>
 </body>
 </html>
