@@ -546,11 +546,6 @@ let menit_telat = 0;
 let status_pulang = null;
 let is_lembur = false;
 
-// if (!shift || shift.is_libur) {
-//  alert("Hari ini libur");
-//  return;
-//}
-
 if (tipe === 'masuk') {
   const shiftHeader = allShift.find(s => s.id === shift.shift_id);
   const toleransi = shiftHeader?.toleransi_telat || 0;
@@ -773,6 +768,7 @@ async function submitAbsen() {
   if (!idKary) { toast('Masukkan ID karyawan!', 'error'); return; }
   if (!fotoDataURL) { toast('Ambil foto selfie dulu!', 'error'); return; }
   if (!gpsData) { toast('Deteksi lokasi GPS dulu!', 'error'); return; }
+  if (!shiftDetail || shiftDetail.is_libur) {toast("Hari ini libur", "warn"); return; }
 
   const btn = document.getElementById('btn-submit');
   btn.disabled = true;
