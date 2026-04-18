@@ -541,19 +541,14 @@ function hitungTelat(jamMasuk, jamSekarang, toleransi = 0) {
   return diff > toleransi ? Math.floor(diff) : 0;
 }
 
-const now = new Date();
-const jamSekarang = now.toTimeString().slice(0,5);
-
-const shift = getShiftHariIni(id_karyawan);
-
 let status_masuk = null;
 let menit_telat = 0;
 let status_pulang = null;
 let is_lembur = false;
 
-if (!shift || shift.is_libur) {
-  alert("Hari ini libur");
-  return;
+// if (!shift || shift.is_libur) {
+//  alert("Hari ini libur");
+//  return;
 }
 
 if (tipe === 'masuk') {
@@ -795,6 +790,59 @@ async function submitAbsen() {
     return;
   }
 
+// ambil data shift dari Supabase
+const { data: karyawan } = await db
+  .from('karyawan')
+  .select('shift_id')
+  .eq('id_karyawan', idKary)
+  .single();
+
+let status_masuk = null;
+let menit_telat = 0;
+let status_pulang = null;
+let is_lembur = false;
+
+if (karyawan?.shift_id) {
+  const hari = new Date().getDay();
+
+  const { data: shiftDetail } = await db
+    .from('shift_detail')
+    .select('*')
+    .eq('shift_id', karyawan.shift_id)
+    .eq('hari', hari)
+    .single();
+
+  if (shiftDetail && !shiftDetail.is_libur) {
+    const jamSekarang = new Date().toTimeString().slice(0,5);
+
+    // ambil toleransi
+    const { data: shiftHeader } = await db
+      .from('shift')
+      .select('toleransi_telat')
+      .eq('id', karyawan.shift_id)
+      .single();
+
+    const toleransi = shiftHeader?.toleransi_telat || 0;
+
+    if (tipeAbsen === 'masuk') {
+      const diff =
+        (new Date(`1970-01-01T${jamSekarang}`) -
+         new Date(`1970-01-01T${shiftDetail.jam_masuk}`)) / 60000;
+
+      menit_telat = diff > toleransi ? Math.floor(diff) : 0;
+      status_masuk = menit_telat > 0 ? 'telat' : 'tepat_waktu';
+    }
+
+    if (tipeAbsen === 'pulang') {
+      if (jamSekarang > shiftDetail.jam_pulang) {
+        status_pulang = 'lembur';
+        is_lembur = true;
+      } else {
+        status_pulang = 'normal';
+      }
+    }
+  }
+}
   const lokasiLat    = cek.lat;
   const lokasiLng    = cek.lng;
   const lokasiRadius = cek.radius;
@@ -867,7 +915,7 @@ const diKantor = jarak <= lokasiRadius;
     status_masuk,
     menit_telat,
     status_pulang,
-    is_lembur
+    is_lembur,
     foto_url: null, // penting kalau kolom ada
     metode: 'mobile'
     }]);
