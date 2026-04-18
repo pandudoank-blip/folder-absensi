@@ -725,6 +725,8 @@ let allData = [];
 let allKaryawan = [];
 let allLokasi = [];
 let allAssign = [];
+let allShift = [];
+let allShiftDetail = [];
 
 // ─── LOGIN ───
 function doLogin() {
@@ -747,7 +749,7 @@ async function initDashboard() {
   const now = new Date();
   document.getElementById('ov-tanggal').textContent = now.toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
   populateBulan();
-  await Promise.all([loadData(), loadKaryawan(), loadLokasi(), loadAssign()]);
+  await Promise.all([loadData(), loadKaryawan(), loadLokasi(), loadAssign(), loadShift()]);
 }
 
 function populateBulan() {
@@ -1011,6 +1013,14 @@ function openModalKaryawan(idKaryawan = null) {
   document.getElementById('modal-karyawan').classList.add('show');
 }
 
+async function loadShift() {
+  const { data: shift } = await sb.from('shift').select('*');
+  const { data: detail } = await sb.from('shift_detail').select('*');
+
+  allShift = shift || [];
+  allShiftDetail = detail || [];
+}
+  
 async function saveKaryawan() {
   const nama = document.getElementById('kary-nama').value.trim();
   const id_karyawan = document.getElementById('kary-id').value.trim();
