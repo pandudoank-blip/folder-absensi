@@ -763,8 +763,8 @@ lokasiKerja = {
   const tanggal = now.toISOString().split('T')[0];
   const jamFull = now.toISOString();
   // const jarak = Math.round(hitungJarak(gpsData.lat, gpsData.lng, lokasiLat, lokasiLng));
-  const diKantor = jarak <= lokasiRadius;
-
+  
+  
   // Validasi koordinat aneh
 if (
   Math.abs(gpsData.lat) > 90 ||
@@ -789,6 +789,8 @@ const jarak = Math.round(
     lokasiKerja.lng
   )
 );
+
+const diKantor = jarak <= lokasiRadius;
 
   // Upload foto
   let fotoUrl = null;
