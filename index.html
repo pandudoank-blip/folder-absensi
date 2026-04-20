@@ -504,13 +504,6 @@ let videoStream = null;
 let kameraAktif = false;
 
 // 🔥 TAMBAHAN
-let lokasiKerja = {
-  lat: KANTOR_LAT,
-  lng: KANTOR_LNG,
-  radius: RADIUS_METER,
-  nama: 'Kantor'
-};
-
 // Jam
 function updateJam() {
   const now = new Date();
@@ -855,18 +848,6 @@ async function submitAbsen() {
   if (!fotoDataURL) { toast('Ambil foto selfie dulu!', 'error'); return; }
   if (!gpsData) { toast('Deteksi lokasi GPS dulu!', 'error'); return; }
   if (!lokasiKerja) { toast('Pilih lokasi kerja', 'warn'); return; }
-
-const jarak = hitungJarak(
-  gpsData.lat,
-  gpsData.lng,
-  lokasiKerja.lat,
-  lokasiKerja.lng
-);
-
-if (jarak > lokasiKerja.radius) {
-  toast('Di luar radius!', 'error');
-  return;
-}
 
   const btn = document.getElementById('btn-submit');
   btn.disabled = true;
