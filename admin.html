@@ -266,6 +266,24 @@
         </div>
       </div>
 
+      <!-- Admin -->
+      <div class="page" id="page-admin">
+        <div class="page-header">
+          <div>
+            <div class="page-title">👤 Manage Admin</div>
+            <div class="page-sub">Tambah akun admin</div>
+          </div>
+        </div>
+
+        <div class="table-card">
+          <div class="table-toolbar">
+          <input type="text" id="admin-username" placeholder="Username">
+          <input type="password" id="admin-password" placeholder="Password">
+          <button class="btn btn-primary" onclick="saveAdmin()">Tambah</button>
+        </div>
+      </div>
+    </div>
+      
       <!-- Karyawan -->
       <div class="page" id="page-karyawan">
         <div class="page-header">
@@ -320,23 +338,6 @@
         </div>
       </div>
 
-    </div>
-  </div>
-</div>
-
-<div class="page" id="page-admin">
-  <div class="page-header">
-    <div>
-      <div class="page-title">👤 Manage Admin</div>
-      <div class="page-sub">Tambah akun admin</div>
-    </div>
-  </div>
-
-  <div class="table-card">
-    <div class="table-toolbar">
-      <input type="text" id="admin-username" placeholder="Username">
-      <input type="password" id="admin-password" placeholder="Password">
-      <button class="btn btn-primary" onclick="saveAdmin()">Tambah</button>
     </div>
   </div>
 </div>
@@ -991,8 +992,8 @@ function showPage(name,el) {
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   document.getElementById('page-'+name).classList.add('active');
   el.classList.add('active');
-  document.querySelector('.sidebar').classList.remove('show');
-  document.querySelector('.overlay').classList.remove('show');
+  const overlay = document.querySelector('.overlay');
+  if (overlay) overlay.classList.remove('show');
   if(name==='karyawan')renderKaryawan();
   if(name==='lokasi')renderLokasi();
   if(name==='assign'){renderAssign();updateLokasiSelect();}
