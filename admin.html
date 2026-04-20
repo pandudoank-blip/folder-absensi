@@ -448,11 +448,11 @@ let allData=[], allKaryawan=[], allLokasi=[], allAssign=[], allShift=[];
 //  document.getElementById('dashboard-page').style.display = 'block';
 //  initDashboard();
 //}
-//function doLogout() {
-//  localStorage.removeItem('isLogin');
-//  document.getElementById('login-page').style.display = 'flex';
-//  document.getElementById('dashboard-page').style.display = 'none';
-//}
+function doLogout() {
+  localStorage.removeItem('isLogin');
+  document.getElementById('login-page').style.display = 'flex';
+  document.getElementById('dashboard-page').style.display = 'none';
+}
 
 async function doLogin() {
   const username = document.getElementById('login-email').value.trim();
