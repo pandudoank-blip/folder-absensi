@@ -277,12 +277,16 @@
 
         <div class="table-card">
           <div class="table-toolbar">
-          <input type="text" id="admin-username" placeholder="Username">
-          <input type="password" id="admin-password" placeholder="Password">
-          <button class="btn btn-primary" onclick="saveAdmin()">Tambah</button>
+            <input type="text" id="admin-username" placeholder="Username">
+            <input type="password" id="admin-password" placeholder="Password">
+            <button class="btn btn-primary" onclick="saveAdmin()">Tambah</button>
+          </div>
         </div>
       </div>
-    </div>
+
+      <div id="tbl-admin">
+        <div class="loading-bar">⏳ Memuat admin...</div>
+      </div>
       
       <!-- Karyawan -->
       <div class="page" id="page-karyawan">
@@ -671,6 +675,54 @@ function exportExcel(mode) {
   }
 }
 
+function renderAdmin(list) {
+  if (!list.length) {
+    document.getElementById('tbl-admin').innerHTML =
+      `<table><tr class="empty-row"><td>Belum ada admin</td></tr></table>`;
+    return;
+  }
+
+  document.getElementById('tbl-admin').innerHTML = `
+    <table>
+      <thead>
+        <tr>
+          <th>Username</th>
+          <th>Password</th>
+          <th>Aksi</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${list.map(a => `
+          <tr>
+            <td><strong>${esc(a.username)}</strong></td>
+            <td>${esc(a.password)}</td>
+            <td>
+              <button class="btn btn-danger btn-sm"
+                onclick="hapusAdmin('${a.id}')">🗑️ Hapus</button>
+            </td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+}
+
+async function hapusAdmin(id) {
+  if (!confirm('Yakin hapus admin ini?')) return;
+
+  const { error } = await sb
+    .from('admin_user')
+    .delete()
+    .eq('id', id);
+
+  if (error) {
+    alert(error.message);
+    return;
+  }
+
+  loadAdmin();
+}
+  
 // ─── KARYAWAN ───
 async function loadKaryawan() {
   try {
@@ -994,6 +1046,7 @@ function showPage(name,el) {
   el.classList.add('active');
   const overlay = document.querySelector('.overlay');
   if (overlay) overlay.classList.remove('show');
+  if(name==='admin'){loadAdmin();}
   if(name==='karyawan')renderKaryawan();
   if(name==='lokasi')renderLokasi();
   if(name==='assign'){renderAssign();updateLokasiSelect();}
@@ -1016,6 +1069,22 @@ document.addEventListener('DOMContentLoaded', () => {
     initDashboard();
   }
 });
+
+async function loadAdmin() {
+  const { data, error } = await sb
+    .from('admin_user')
+    .select('*')
+    .order('username');
+
+  if (error) {
+    console.error(error);
+    document.getElementById('tbl-admin').innerHTML =
+      `<div class="loading-bar">❌ Gagal load data</div>`;
+    return;
+  }
+
+  renderAdmin(data || []);
+}
 </script>
 <div class="overlay" onclick="toggleSidebar()"></div>
 </body>
