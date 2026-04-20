@@ -661,7 +661,7 @@ function renderLokasi() {
   if(!allLokasi.length){document.getElementById('loc-container').innerHTML=`<div class="loading-bar">Belum ada lokasi. Klik "+ Tambah Lokasi".</div>`;return;}
   document.getElementById('loc-container').innerHTML=`<div class="loc-grid">${allLokasi.map(l=>{
     const jml=allAssign.filter(a=>a.id_lokasi===l.id).length;
-    "loc-card">
+    return `<div class="loc-card">
       <div class="loc-name">📍 ${esc(l.nama)}</div>
       <div class="loc-sub">${esc(l.alamat||'—')}</div>
       <span class="loc-badge">👷 ${jml} karyawan</span>
