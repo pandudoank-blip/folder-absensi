@@ -739,22 +739,37 @@ function openModalAssign(id) {
 }
 
 async function saveAssign() {
-  const id_karyawan=document.getElementById('assign-kary-id').value;
-  const id_lokasi=document.getElementById('assign-lokasi-select').value;
-  if(!id_karyawan||!id_lokasi){alert('Pilih lokasi!');return;}
-  const assign={id_karyawan,id_lokasi,tgl_mulai:document.getElementById('assign-tgl-mulai').value,keterangan:document.getElementById('assign-ket').value.trim(),updated_at:new Date().toISOString()};
-  let saved=false;
-  try{
-    const existing=allAssign.find(a=>a.id_karyawan===id_karyawan);
-    if(existing){const{error}=await sb.from('assign_lokasi').update(assign).eq('id_karyawan',id_karyawan);if(!error)saved=true;}
-    else{const{data,error}=await sb.from('assign_lokasi').insert([assign]).select();if(!error&&data){assign.id=data[0].id;saved=true;}}
-  }catch(e){}
-  if(!saved){assign.id=assign.id||Date.now().toString();const idx=allAssign.findIndex(a=>a.id_karyawan===id_karyawan);if(idx>=0)allAssign[idx]=assign;else allAssign.push(assign);localStorage.setItem('assign',JSON.stringify(allAssign));}
-  else{await loadAssign();}
-  closeModal('modal-assign');renderAssign();renderKaryawan();renderLokasi();
-  alert('✅ Assign berhasil!');
-}
+  const id_karyawan = document.getElementById('assign-kary-id').value;
+  const id_lokasi = document.getElementById('assign-lokasi-select').value;
 
+  if (!id_karyawan || !id_lokasi) {
+    alert('Pilih lokasi!');
+    return;
+  }
+    const exists = allAssign.find(a => 
+    a.id_karyawan === id_karyawan && a.id_lokasi === id_lokasi
+  );
+  if (exists) {
+    alert('Lokasi ini sudah di-assign ke karyawan!');
+    return;
+  }
+  const assign = {
+    id_karyawan,
+    id_lokasi,
+    tgl_mulai: document.getElementById('assign-tgl-mulai').value,
+    keterangan: document.getElementById('assign-ket').value.trim(),
+    updated_at: new Date().toISOString()
+  };
+  const { error } = await sb.from('assign_lokasi').insert([assign]);
+  if (error) {
+    alert(error.message);
+    return;
+  }
+  await loadAssign();
+  closeModal('modal-assign');
+  alert('✅ Assign berhasil ditambahkan!');
+}
+ 
 function renderAssign() {
   const filterLok=document.getElementById('filter-assign-lokasi')?.value||'';
   let list=allKaryawan;
