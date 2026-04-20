@@ -372,14 +372,25 @@
   .toast.warn { background: var(--warn); }
 
   canvas { display: none; }
+
+function updateClock(){
+  const now = new Date();
+  const time = now.toLocaleTimeString('id-ID', {
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+  document.getElementById('header-clock').textContent = time;
+}
+
+setInterval(updateClock, 1000);
+updateClock();
 </style>
 </head>
 <body>
 
 <div class="title-center">
-  <span class="title-main">BENTUK RUANG</span>span
-  <br></br>
-  <span class="title-sub">AbsensiKu 📋</span>
+  <div class="title-main">BENTUK RUANG</div>
+  <div class="title-sub">AbsensiKu 📋</div>
   <div class="header-time" id="header-clock">--:--</div>
 </div>
 
