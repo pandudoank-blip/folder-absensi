@@ -405,11 +405,13 @@
     <div class="card-title">Data Karyawan</div>
     <div class="input-group">
       <label class="input-label">Nama Lengkap</label>
-      <input class="input" type="text" id="input-nama" placeholder="contoh: Arsene Wenger" autocomplete="name">
+      <!-- <input class="input" type="text" id="input-nama" placeholder="contoh: Arsene Wenger" autocomplete="name"> -->
+      <select class="input" id="input-nama" onchange="autoFillId()"><option value="">-- Pilih Nama --</option></select>    
     </div>
     <div class="input-group" style="margin-bottom:0">
       <label class="input-label">ID Karyawan</label>
-      <input class="input" type="text" id="input-id" placeholder="contoh: BR-001 atau PRJ-001" autocomplete="off">
+      <!-- <input class="input" type="text" id="input-id" placeholder="contoh: BR-001 atau PRJ-001" autocomplete="off"> -->
+      <input class="input" type="text" id="input-id" readonly>
     </div>
   </div>
 
@@ -514,6 +516,7 @@ function updateJam() {
 }
 setInterval(updateJam, 1000);
 updateJam();
+loadKaryawanList();
 
 // Tipe absen
 function pilihTipe(tipe) {
@@ -755,10 +758,10 @@ async function cekKaryawanDanLokasi(idKaryawan) {
       if (assignData) {
         const { data: lokData } = await db.from('lokasi').select('*').eq('id', assignData.id_lokasi).maybeSingle();
         if (lokData && lokData.lat && lokData.lng) {
-          return { ok: true, lat: lokData.lat, lng: lokData.lng, radius: lokData.radius || 100, namaLokasi: lokData.nama };
+          return { ok: true, nama: idKaryawan, lat: lokData.lat, lng: lokData.lng, radius: lokData.radius || 100, namaLokasi: lokData.nama };
         }
       }
-      return { ok: true, lat: KANTOR_LAT, lng: KANTOR_LNG, radius: RADIUS_METER, namaLokasi: 'Kantor' };
+      return { ok: true, nama: idKaryawan, lat: KANTOR_LAT, lng: KANTOR_LNG, radius: RADIUS_METER, namaLokasi: 'Kantor' };
     }
   } catch(e) {}
 
@@ -780,12 +783,46 @@ async function cekKaryawanDanLokasi(idKaryawan) {
     }
   } catch(e) {}
 
-  return { ok: true, lat: KANTOR_LAT, lng: KANTOR_LNG, radius: RADIUS_METER, namaLokasi: 'Kantor' };
+  return { ok: true, nama: idKaryawan, lat: KANTOR_LAT, lng: KANTOR_LNG, radius: RADIUS_METER, namaLokasi: 'Kantor' };
 }
 
+async function loadKaryawanList() {
+  const { data, error } = await db
+    .from('karyawan')
+    .select('id_karyawan, nama')
+    .eq('status', 'aktif')
+    .order('nama');
+
+  if (error) {
+    console.error(error);
+    return;
+  }
+
+  const select = document.getElementById('input-nama');
+  select.innerHTML = '<option value="">-- Pilih Nama --</option>';
+  // const nama = select.options[select.selectedIndex].text;
+  // const id   = select.value;
+
+  data.forEach(k => {
+    select.innerHTML += `<option value="${k.id_karyawan}">${k.nama}</option>`;
+  });
+}
+
+function autoFillId() {
+  const select = document.getElementById('input-nama');
+  const selectedOption = select.options[select.selectedIndex];
+
+  const id = selectedOption.value;
+
+  document.getElementById('input-id').value = id || '';
+}
+  
 // Submit
 async function submitAbsen() {
-  const nama = document.getElementById('input-nama').value.trim();
+  // const nama = document.getElementById('input-nama').value.trim();
+  const select = document.getElementById('input-nama');
+  const nama = select.options[select.selectedIndex]?.text || '';
+  // const idKaryawan = select.value;
   const idKaryawan = document.getElementById('input-id').value.trim();
   // const eval = await evaluasiAbsensi(idKaryawan, tipeAbsen);
   const hasilEval = await evaluasiAbsensi(idKaryawan, tipeAbsen);
@@ -807,7 +844,12 @@ async function submitAbsen() {
     btn.textContent = 'Kirim Absensi';
     return;
   }
-
+  if (cek.ok && nama !== cek.nama) {
+  toast('Nama tidak sesuai dengan ID!', 'error');
+  btn.disabled = false;
+  btn.textContent = 'Kirim Absensi';
+  return;
+  }
   const lokasiLat    = cek.lat;
   const lokasiLng    = cek.lng;
   const lokasiRadius = cek.radius;
@@ -879,9 +921,9 @@ const diKantor = jarak <= lokasiRadius;
     di_area_kantor: diKantor,
     foto_url: null, // penting kalau kolom ada
     metode: 'mobile',
-    telat_menit: eval?.telat || 0,
-    lembur_menit: eval?.lembur || 0,
-    is_libur: eval?.is_libur || false,
+    telat_menit: hasilEval?.telat || 0,
+    lembur_menit: hasilEval?.lembur || 0,
+    is_libur: hasilEval?.is_libur || false,
     }]);
 
     if (error) throw error;
