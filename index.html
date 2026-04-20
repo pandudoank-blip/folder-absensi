@@ -846,12 +846,12 @@ async function submitAbsen() {
     btn.textContent = 'Kirim Absensi';
     return;
   }
-  if (cek.ok && nama !== cek.nama) {
-  toast('Nama tidak sesuai dengan ID!', 'error');
-  btn.disabled = false;
-  btn.textContent = 'Kirim Absensi';
-  return;
-  }
+  // if (cek.ok && nama !== cek.nama) {
+  // toast('Nama tidak sesuai dengan ID!', 'error');
+  // btn.disabled = false;
+  // btn.textContent = 'Kirim Absensi';
+  // return;
+  // }
   const lokasiLat    = cek.lat;
   const lokasiLng    = cek.lng;
   const lokasiRadius = cek.radius;
