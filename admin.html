@@ -123,6 +123,20 @@
   .form-row{
     grid-template-columns:1fr;
   }
+.overlay{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background:rgba(0,0,0,0.4);
+  z-index:150;
+  display:none;
+}
+
+.overlay.show{
+  display:block;
+}
 }
 </style>
 </head>
@@ -888,6 +902,8 @@ function showPage(name,el) {
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   document.getElementById('page-'+name).classList.add('active');
   el.classList.add('active');
+  document.querySelector('.sidebar').classList.remove('show');
+  document.querySelector('.overlay').classList.remove('show');
   if(name==='karyawan')renderKaryawan();
   if(name==='lokasi')renderLokasi();
   if(name==='assign'){renderAssign();updateLokasiSelect();}
@@ -898,7 +914,9 @@ function showPage(name,el) {
 
 function toggleSidebar(){
   document.querySelector('.sidebar').classList.toggle('show');
+  document.querySelector('.overlay').classList.toggle('show');
 }
 </script>
+<div class="overlay" onclick="toggleSidebar()"></div>
 </body>
 </html>
