@@ -515,10 +515,11 @@ function updateJam() {
   document.getElementById('hari-ini').textContent = now.toLocaleDateString('id-ID', { weekday:'long' });
   document.getElementById('tanggal-ini').textContent = now.toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric' });
 }
-setInterval(updateJam, 1000);
-updateJam();
-loadKaryawanList();
-
+document.addEventListener('DOMContentLoaded', () => {
+  updateJam();
+  loadKaryawanList();
+  setInterval(updateJam, 1000);
+});
 // Tipe absen
 function pilihTipe(tipe) {
   tipeAbsen = tipe;
