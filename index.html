@@ -411,6 +411,12 @@
     </div>
     <div class="input-group" style="margin-bottom:0">
       <label class="input-label">ID Karyawan</label>
+      <div class="input-group">
+        <label class="input-label">Lokasi Kerja</label>
+        <select class="input" id="input-lokasi">
+        <option value="">-- Pilih Lokasi --</option>
+        </select>
+      </div>
       <!-- <input class="input" type="text" id="input-id" placeholder="contoh: BR-001 atau PRJ-001" autocomplete="off"> -->
       <input class="input" type="text" id="input-id" readonly>
     </div>
@@ -590,6 +596,10 @@ function hitungJarak(lat1, lon1, lat2, lon2) {
 }
 
 function deteksiGPS() {
+  if (!lokasiKerja) {
+    toast('Pilih lokasi dulu', 'warn');
+    return;
+  }
   const idKaryawan = document.getElementById('input-id').value.trim();
   if (!idKaryawan) {
     toast('Isi ID karyawan dulu sebelum deteksi GPS', 'warn');
@@ -817,7 +827,18 @@ function autoFillId() {
   const id = selectedOption.value;
 
   document.getElementById('input-id').value = id || '';
+  if (id) {
+  loadLokasiByKaryawan(id);
+  }
 }
+  document.getElementById('input-lokasi').addEventListener('change', function () {
+  if (!this.value) {
+    lokasiKerja = null;
+    return;
+  }
+
+  lokasiKerja = JSON.parse(this.value);
+});
   
 // Submit
 async function submitAbsen() {
@@ -833,6 +854,19 @@ async function submitAbsen() {
   if (!idKaryawan) { toast('Masukkan ID karyawan!', 'error'); return; }
   if (!fotoDataURL) { toast('Ambil foto selfie dulu!', 'error'); return; }
   if (!gpsData) { toast('Deteksi lokasi GPS dulu!', 'error'); return; }
+  if (!lokasiKerja) { toast('Pilih lokasi kerja', 'warn'); return; }
+
+const jarak = hitungJarak(
+  gpsData.lat,
+  gpsData.lng,
+  lokasiKerja.lat,
+  lokasiKerja.lng
+);
+
+if (jarak > lokasiKerja.radius) {
+  toast('Di luar radius!', 'error');
+  return;
+}
 
   const btn = document.getElementById('btn-submit');
   btn.disabled = true;
@@ -1000,6 +1034,36 @@ document.getElementById('input-id').addEventListener('change', async (e) => {
 
   console.log('Lokasi kerja:', lokasiKerja);
 });
+
+let lokasiKerja = null;
+
+async function loadLokasiByKaryawan(idKaryawan) {
+  const { data, error } = await db
+    .from('assign_lokasi')
+    .select(`
+      lokasi:lokasi (
+        id,
+        nama,
+        lat,
+        lng,
+        radius
+      )
+    `)
+    .eq('id_karyawan', idKaryawan);
+
+  if (error) {
+    toast('Gagal load lokasi', 'error');
+    return;
+  }
+
+  const select = document.getElementById('input-lokasi');
+  select.innerHTML = '<option value="">-- Pilih Lokasi --</option>';
+
+  data.forEach(row => {
+    const loc = row.lokasi;
+    select.innerHTML += `<option value='${JSON.stringify(loc)}'>${loc.nama}</option>`;
+  });
+}
   
 </script>
 </body>
