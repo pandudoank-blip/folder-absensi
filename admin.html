@@ -833,7 +833,7 @@ function renderAssign() {
         <div class="assign-id">${esc(k.id_karyawan)}${k.jabatan?' · '+k.jabatan:''}</div>
         <div class="assign-loc">${lokasiList ? '📍 ' + lokasiList : '⚪ Belum di-assign'}</div>
       </div>
-      <button class="btn btn-outline btn-sm" onclick="openModalAssign('${k.id_karyawan}')">${hasLokasi?'🔄 Pindah':'📍 Assign'}</button>
+      <button class="btn btn-outline btn-sm" onclick="openModalAssign('${k.id_karyawan}')">${hasLokasi?'🔄 Tambah':'📍 Assign'}</button>
     </div>`;
   }).join('');
 }
