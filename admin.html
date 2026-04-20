@@ -581,10 +581,13 @@ function renderKaryawan() {
 }
 
 function getLokasiKaryawan(id) {
-  const a=allAssign.find(x=>x.id_karyawan===id);
-  if(!a) return null;
-  const l=allLokasi.find(x=>x.id===a.id_lokasi);
-  return l?l.nama:null;
+  const assigns = allAssign.filter(x => x.id_karyawan === id);
+  if (!assigns.length) return null;
+  const names = assigns.map(a => {
+    const l = allLokasi.find(x => x.id === a.id_lokasi);
+    return l ? l.nama : '-';
+  });
+  return names.join(', ');
 }
 
 function openModalKaryawan(id=null) {
@@ -658,7 +661,7 @@ function renderLokasi() {
   if(!allLokasi.length){document.getElementById('loc-container').innerHTML=`<div class="loading-bar">Belum ada lokasi. Klik "+ Tambah Lokasi".</div>`;return;}
   document.getElementById('loc-container').innerHTML=`<div class="loc-grid">${allLokasi.map(l=>{
     const jml=allAssign.filter(a=>a.id_lokasi===l.id).length;
-    return `<div class="loc-card">
+    "loc-card">
       <div class="loc-name">📍 ${esc(l.nama)}</div>
       <div class="loc-sub">${esc(l.alamat||'—')}</div>
       <span class="loc-badge">👷 ${jml} karyawan</span>
@@ -734,7 +737,8 @@ function openModalAssign(id) {
   document.getElementById('assign-tgl-mulai').value=new Date().toISOString().split('T')[0];
   document.getElementById('assign-ket').value='';
   const cur=allAssign.find(a=>a.id_karyawan===id);
-  document.getElementById('assign-lokasi-select').value=cur?cur.id_lokasi:'';
+  document.getElementById('assign-lokasi-select').value='';
+  // document.getElementById('assign-lokasi-select').value=cur?cur.id_lokasi:'';
   document.getElementById('modal-assign').classList.add('show');
 }
 
@@ -776,16 +780,21 @@ function renderAssign() {
   if(filterLok){const ids=allAssign.filter(a=>a.id_lokasi===filterLok).map(a=>a.id_karyawan);list=list.filter(k=>ids.includes(k.id_karyawan));}
   if(!list.length){document.getElementById('tbl-assign').innerHTML=`<div class="loading-bar">Belum ada karyawan.</div>`;return;}
   document.getElementById('tbl-assign').innerHTML=list.map(k=>{
-    const assign=allAssign.find(a=>a.id_karyawan===k.id_karyawan);
-    const lok=assign?allLokasi.find(l=>l.id===assign.id_lokasi):null;
+    // const assign=allAssign.find(a=>a.id_karyawan===k.id_karyawan);
+    const assigns = allAssign.filter(a => a.id_karyawan === k.id_karyawan);
+    const hasLokasi = assigns.length > 0;
+    // const lok=assign?allLokasi.find(l=>l.id===assign.id_lokasi):null;
+    const lokasiList = assigns.map(a => {
+    const l = allLokasi.find(x => x.id === a.id_lokasi);
+    return l ? l.nama : '-';
+    }).join(', ');
     return `<div class="assign-row">
       <div class="assign-info">
         <div class="assign-name">${esc(k.nama)} <span class="badge ${k.status==='aktif'?'badge-aktif':'badge-nonaktif'}" style="margin-left:6px;font-size:10px;">${k.status==='aktif'?'Aktif':'Nonaktif'}</span></div>
         <div class="assign-id">${esc(k.id_karyawan)}${k.jabatan?' · '+k.jabatan:''}</div>
-        <div class="assign-loc">${lok?'📍 '+lok.nama:'⚪ Belum di-assign'}</div>
-        ${assign?.tgl_mulai?`<div style="font-size:11px;color:var(--muted);">Sejak ${assign.tgl_mulai}</div>`:''}
+        <div class="assign-loc">${lokasiList ? '📍 ' + lokasiList : '⚪ Belum di-assign'}</div>
       </div>
-      <button class="btn btn-outline btn-sm" onclick="openModalAssign('${k.id_karyawan}')">${lok?'🔄 Pindah':'📍 Assign'}</button>
+      <button class="btn btn-outline btn-sm" onclick="openModalAssign('${k.id_karyawan}')">${hasLokasi?'🔄 Pindah':'📍 Assign'}</button>
     </div>`;
   }).join('');
 }
