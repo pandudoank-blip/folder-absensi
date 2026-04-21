@@ -943,7 +943,7 @@ const jarak = Math.round(
   )
 );
 
-const diKantor = jarak <= lokasiKerja.radius;
+// const diKantor = jarak <= lokasiKerja.radius;
 let diKantor = jarak <= lokasiKerja.radius;
 if (!diKantor) {
   toast('Anda berada di luar area kantor (tetap diizinkan)', 'warn');
