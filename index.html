@@ -944,11 +944,9 @@ const jarak = Math.round(
 );
 
 const diKantor = jarak <= lokasiKerja.radius;
-if (jarak > lokasiKerja.radius) {
-  toast('Anda berada di luar area kantor!', 'error');
-  btn.disabled = true;
-  btn.textContent = 'Kirim Absensi';
-  return;
+let diKantor = jarak <= lokasiKerja.radius;
+if (!diKantor) {
+  toast('Anda berada di luar area kantor (tetap diizinkan)', 'warn');
 }
 
   // Upload foto
