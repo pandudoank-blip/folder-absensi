@@ -1046,6 +1046,7 @@ function showPage(name,el) {
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   document.getElementById('page-'+name).classList.add('active');
   el.classList.add('active');
+  document.querySelector('.sidebar').classList.remove('show');
   const overlay = document.querySelector('.overlay');
   if (overlay) overlay.classList.remove('show');
   if(name==='admin'){loadAdmin();}
