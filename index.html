@@ -977,7 +977,16 @@ if (!diKantor) {
     is_libur: hasilEval?.is_libur || false,
     }]);
 
-    if (error) throw error;
+    if (error) {
+    if (error.message.includes('duplicate key')) {
+      toast(`Sudah absen ${tipeAbsen} hari ini`, 'warn');
+    } else {
+      toast('Gagal menyimpan data', 'error');
+    }
+    btn.disabled = false;
+    btn.textContent = 'Kirim Absensi';
+    return;
+  }
 
     // Tampilkan sukses
     document.getElementById('form-screen').style.display = 'none';
