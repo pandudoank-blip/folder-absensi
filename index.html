@@ -954,8 +954,8 @@ const jarak = Math.round(
   )
 );
 
-const diKantor = jarak <= lokasiRadius;
-  if (jarak > lokasiRadius) {
+const diKantor = jarak <= lokasiKerja.radius;
+if (jarak > lokasiKerja.radius) {
   toast('Anda berada di luar area kantor!', 'error');
   btn.disabled = false;
   btn.textContent = 'Kirim Absensi';
