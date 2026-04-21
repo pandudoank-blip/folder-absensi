@@ -401,17 +401,6 @@
   color:var(--accent);
 }
   
-function updateClock(){
-  const now = new Date();
-  const time = now.toLocaleTimeString('id-ID', {
-    hour: '2-digit',
-    minute: '2-digit'
-  });
-  document.getElementById('header-clock').textContent = time;
-}
-
-setInterval(updateClock, 1000);
-updateClock();
 </style>
 </head>
 <body>
@@ -629,10 +618,10 @@ function hitungJarak(lat1, lon1, lat2, lon2) {
 }
 
 function deteksiGPS() {
-  if (!lokasiKerja) {
-    toast('Pilih lokasi dulu', 'warn');
-    return;
-  }
+  if (!lokasiKerja || !lokasiKerja.lat) {
+  toast('Pilih lokasi dulu', 'warn');
+  return;
+}
   const idKaryawan = document.getElementById('input-id').value.trim();
   if (!idKaryawan) {
     toast('Isi ID karyawan dulu sebelum deteksi GPS', 'warn');
@@ -957,7 +946,7 @@ const jarak = Math.round(
 const diKantor = jarak <= lokasiKerja.radius;
 if (jarak > lokasiKerja.radius) {
   toast('Anda berada di luar area kantor!', 'error');
-  btn.disabled = false;
+  btn.disabled = true;
   btn.textContent = 'Kirim Absensi';
   return;
 }
@@ -1092,6 +1081,18 @@ async function loadLokasiByKaryawan(idKaryawan) {
     select.innerHTML += `<option value='${JSON.stringify(loc)}'>${loc.nama}</option>`;
   });
 }
+
+function updateClock(){
+  const now = new Date();
+  const time = now.toLocaleTimeString('id-ID', {
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+  document.getElementById('header-clock').textContent = time;
+}
+
+setInterval(updateClock, 1000);
+updateClock();
   
 </script>
 </body>
