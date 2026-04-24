@@ -546,7 +546,6 @@ function updateJam() {
 document.addEventListener('DOMContentLoaded', () => {
   updateJam();
   loadKaryawanList();
-  loadAllLokasi(); 
   setInterval(updateJam, 1000);
 });
 // Tipe absen
@@ -596,32 +595,6 @@ function ambilFoto(e) {
   if (videoStream) { videoStream.getTracks().forEach(t => t.stop()); videoStream = null; }
   kameraAktif = false;
   toast('Foto berhasil diambil ✓', 'success');
-}
-
-function getLokasiTerdekat(userLat, userLng, listLokasi) {
-  if (!listLokasi || listLokasi.length === 0) {
-    return { lokasi: null, jarak: 0, dalamRadius: false };
-  }
-
-  let minJarak = Infinity;
-  let lokasiTerpilih = null;
-
-  listLokasi.forEach(loc => {
-    const jarak = hitungJarak(userLat, userLng, loc.lat, loc.lng);
-
-    if (jarak < minJarak) {
-      minJarak = jarak;
-      lokasiTerpilih = loc;
-    }
-  });
-
-  return {
-    lokasi: lokasiTerpilih,
-    jarak: Math.round(minJarak),
-    dalamRadius: lokasiTerpilih
-      ? minJarak <= (lokasiTerpilih.radius || 100)
-      : false
-  };
 }
 
 function ulangiKamera(e) {
@@ -960,16 +933,14 @@ if (gpsData.acc > 100) {
   toast('Akurasi GPS terlalu rendah, coba di luar ruangan', 'warn');
 }
 
-if (!allLokasi || allLokasi.length === 0) {
-  toast('Data lokasi belum siap, tunggu sebentar...', 'warn');
-  return;
-}
-
-// 🔥 cari lokasi terdekat dari semua lokasi
-const hasil = getLokasiTerdekat(
-  gpsData.lat,
-  gpsData.lng,
-  allLokasi // nanti kita bahas ini
+// Hitung jarak
+const jarak = Math.round(
+  hitungJarak(
+    gpsData.lat,
+    gpsData.lng,
+    lokasiKerja.lat,
+    lokasiKerja.lng
+  )
 );
 
 // const diKantor = jarak <= lokasiKerja.radius;
@@ -988,29 +959,23 @@ if (!diKantor) {
   // Simpan ke Supabase
  try {
   const { error } = await db.from('absensi').insert([{
-  nama,
-  id_karyawan: idKaryawan,
-  tipe: tipeAbsen,
-  jam,
-  tanggal,
-  timestamp: jamFull,
-
-  latitude: gpsData.lat,
-  longitude: gpsData.lng,
-  akurasi_gps: gpsData.acc,
-
-  // 🔥 pakai hasil lokasi terdekat
-  lokasi_nama: hasil.lokasi?.nama || lokasiKerja?.nama || 'Unknown',
-  lokasi_id: hasil.lokasi?.id || null,
-
-  jarak_kantor: hasil.jarak || jarak,
-  di_area_kantor: hasil.dalamRadius ?? diKantor,
-
-  metode: 'mobile',
-  telat_menit: hasilEval?.telat || 0,
-  lembur_menit: hasilEval?.lembur || 0,
-  is_libur: hasilEval?.is_libur || false,
-}]);
+    nama,
+    id_karyawan: idKaryawan,
+    tipe: tipeAbsen,
+    jam,
+    tanggal,
+    timestamp: jamFull,
+    latitude: gpsData.lat,
+    longitude: gpsData.lng,
+    akurasi_gps: gpsData.acc,
+    jarak_kantor: jarak,
+    di_area_kantor: diKantor,
+    foto_url: null, // penting kalau kolom ada
+    metode: 'mobile',
+    telat_menit: hasilEval?.telat || 0,
+    lembur_menit: hasilEval?.lembur || 0,
+    is_libur: hasilEval?.is_libur || false,
+    }]);
 
     if (error) {
     if (error.message.includes('duplicate key')) {
@@ -1095,7 +1060,7 @@ document.getElementById('input-id').addEventListener('change', async (e) => {
 });
 
 let lokasiKerja = null;
-let allLokasi = [];
+
 async function loadLokasiByKaryawan(idKaryawan) {
   const { data, error } = await db
     .from('assign_lokasi')
@@ -1135,18 +1100,6 @@ function updateClock(){
 
 setInterval(updateClock, 1000);
 updateClock();
-
-async function loadAllLokasi() {
-  const { data, error } = await db.from('lokasi').select('*');
-
-  if (error) {
-    console.error('Gagal load lokasi', error);
-    return;
-  }
-
-  allLokasi = data;
-  console.log('Lokasi loaded:', allLokasi); // debug
-}
   
 </script>
 </body>
