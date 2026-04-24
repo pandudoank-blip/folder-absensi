@@ -5,41 +5,23 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Absen Karyawan</title>
 <script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-  /* =============================================
-     KONFIGURASI — EDIT BAGIAN INI
-     ============================================= */
-  /*
-    Langkah setup:
-    1. Daftar di https://supabase.com
-    2. Buat project baru
-    3. Masuk ke Settings > API
-    4. Copy "Project URL" dan "anon public key"
-    5. Paste di SUPABASE_URL dan SUPABASE_KEY di bawah (dalam <script> paling bawah)
-
-    Untuk foto:
-    1. Daftar di https://cloudinary.com
-    2. Copy Cloud Name ke CLOUDINARY_CLOUD_NAME
-    3. Buat Upload Preset (unsigned) → copy ke CLOUDINARY_UPLOAD_PRESET
-  */
-
   :root {
-    --bg: #f7f6f3;
-    --white: #ffffff;
-    --border: #e8e4dc;
-    --text: #1a1a18;
-    --muted: #888880;
-    --accent: #2563eb;
-    --accent-light: #eff6ff;
-    --success: #16a34a;
+    --bg:            #f7f6f3;
+    --white:         #ffffff;
+    --border:        #e8e4dc;
+    --text:          #1a1a18;
+    --muted:         #888880;
+    --accent:        #2563eb;
+    --accent-light:  #eff6ff;
+    --success:       #16a34a;
     --success-light: #f0fdf4;
-    --danger: #dc2626;
-    --danger-light: #fef2f2;
-    --warn: #d97706;
-    --warn-light: #fffbeb;
-    --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
-    --shadow-md: 0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.05);
+    --danger:        #dc2626;
+    --danger-light:  #fef2f2;
+    --warn:          #d97706;
+    --warn-light:    #fffbeb;
+    --shadow:        0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.04);
+    --shadow-md:     0 4px 6px rgba(0,0,0,.07), 0 2px 4px rgba(0,0,0,.05);
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -52,34 +34,29 @@
     padding-bottom: 40px;
   }
 
-  /* Header */
-  .header {
-    background: var(--white);
-    border-bottom: 1px solid var(--border);
-    padding: 16px 20px;
+  /* ── Title ── */
+  .title-center {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    justify-content: space-between;
-    position: sticky;
-    top: 0;
-    z-index: 10;
+    justify-content: center;
+    text-align: center;
+    margin-bottom: 20px;
+    padding-top: 24px;
   }
-  .header-logo {
-    font-size: 17px;
-    font-weight: 700;
-    color: var(--accent);
-    letter-spacing: -0.3px;
-  }
+  .title-main { font-size: 24px; font-weight: 800; letter-spacing: 1px; }
+  .title-sub  { font-size: 18px; color: var(--muted); margin-top: 2px; }
   .header-time {
-    font-size: 13px;
-    color: var(--muted);
-    font-variant-numeric: tabular-nums;
+    font-size: 16px;
+    font-weight: 600;
+    margin-top: 2px;
+    color: var(--accent);
   }
 
-  /* Container */
+  /* ── Container ── */
   .container { max-width: 480px; margin: 0 auto; padding: 20px 16px; }
 
-  /* Date bar */
+  /* ── Date bar ── */
   .date-bar {
     background: var(--accent);
     color: white;
@@ -90,11 +67,16 @@
     justify-content: space-between;
     align-items: center;
   }
-  .date-bar .day { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
-  .date-bar .date-full { font-size: 12px; opacity: 0.8; margin-top: 2px; }
-  .date-bar .jam-besar { font-size: 28px; font-weight: 800; letter-spacing: -1px; font-variant-numeric: tabular-nums; }
+  .date-bar .day       { font-size: 22px; font-weight: 700; letter-spacing: -.5px; }
+  .date-bar .date-full { font-size: 12px; opacity: .8; margin-top: 2px; }
+  .date-bar .jam-besar {
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -1px;
+    font-variant-numeric: tabular-nums;
+  }
 
-  /* Card */
+  /* ── Card ── */
   .card {
     background: var(--white);
     border: 1px solid var(--border);
@@ -108,13 +90,13 @@
     font-weight: 600;
     color: var(--muted);
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: .5px;
     margin-bottom: 12px;
   }
 
-  /* Input */
-  .input-group { margin-bottom: 10px; }
-  .input-label { font-size: 13px; font-weight: 500; color: var(--muted); margin-bottom: 6px; display: block; }
+  /* ── Input ── */
+  .input-group  { margin-bottom: 10px; }
+  .input-label  { font-size: 13px; font-weight: 500; color: var(--muted); margin-bottom: 6px; display: block; }
   .input {
     width: 100%;
     padding: 12px 14px;
@@ -124,166 +106,13 @@
     color: var(--text);
     background: var(--white);
     outline: none;
-    transition: border-color 0.15s;
+    transition: border-color .15s;
     -webkit-appearance: none;
   }
-  .input:focus { border-color: var(--accent); }
+  .input:focus       { border-color: var(--accent); }
   .input::placeholder { color: #c8c6c0; }
 
-  /* Kamera */
-  .camera-wrap {
-    position: relative;
-    border-radius: 12px;
-    overflow: hidden;
-    background: #f0ede8;
-    aspect-ratio: 3/4;
-    cursor: pointer;
-    border: 2px dashed var(--border);
-    transition: border-color 0.2s;
-  }
-  .camera-wrap.active { border-style: solid; border-color: var(--accent); }
-  .camera-wrap video,
-  .camera-wrap img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-  }
-  .cam-placeholder {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    color: var(--muted);
-  }
-  .cam-icon { font-size: 40px; }
-  .cam-placeholder p { font-size: 14px; font-weight: 500; }
-  .cam-placeholder span { font-size: 12px; color: #aaa; }
-  .cam-gradient {
-    position: absolute;
-    bottom: 0; left: 0; right: 0;
-    height: 80px;
-    background: linear-gradient(to top, rgba(0,0,0,0.5), transparent);
-    pointer-events: none;
-    display: none;
-  }
-  .cam-gradient.show { display: block; }
-  .shutter-btn {
-    position: absolute;
-    bottom: 16px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 60px;
-    height: 60px;
-    background: white;
-    border-radius: 50%;
-    border: 3px solid rgba(255,255,255,0.6);
-    cursor: pointer;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    font-size: 22px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-    transition: transform 0.1s;
-    z-index: 5;
-  }
-  .shutter-btn:active { transform: translateX(-50%) scale(0.92); }
-  .retake-btn {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: rgba(0,0,0,0.5);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    padding: 6px 12px;
-    font-size: 12px;
-    cursor: pointer;
-    display: none;
-    z-index: 5;
-  }
-
-  /* GPS */
-  .gps-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .gps-status {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 11px 13px;
-    border-radius: 10px;
-    border: 1.5px solid var(--border);
-    font-size: 13px;
-    background: var(--bg);
-  }
-  .gps-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--muted);
-    flex-shrink: 0;
-  }
-  .gps-dot.ok { background: var(--success); }
-  .gps-dot.loading { background: var(--warn); animation: pulse 1s infinite; }
-  .gps-dot.err { background: var(--danger); }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
-  .gps-text { color: var(--muted); font-size: 13px; }
-  .gps-coords { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
-  .btn-gps {
-    padding: 11px 16px;
-    border-radius: 10px;
-    border: 1.5px solid var(--border);
-    background: var(--white);
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    color: var(--accent);
-    transition: all 0.15s;
-    white-space: nowrap;
-  }
-  .btn-gps:active { background: var(--accent-light); }
-
-  /* Radius indicator */
-  .radius-badge {
-    margin-top: 8px;
-    padding: 8px 12px;
-    border-radius: 8px;
-    font-size: 12px;
-    font-weight: 500;
-    display: none;
-    align-items: center;
-    gap: 6px;
-  }
-  .radius-badge.ok { background: var(--success-light); color: var(--success); display: flex; }
-  .radius-badge.out { background: var(--warn-light); color: var(--warn); display: flex; }
-
-  /* Tombol absen */
-  .btn-absen {
-    width: 100%;
-    padding: 17px;
-    border-radius: 14px;
-    border: none;
-    background: var(--accent);
-    color: white;
-    font-size: 16px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: opacity 0.15s, transform 0.1s;
-    letter-spacing: -0.2px;
-    margin-top: 8px;
-  }
-  .btn-absen:active { transform: scale(0.98); }
-  .btn-absen:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
-  .btn-absen.loading { opacity: 0.7; }
-
-  /* Tipe absen toggle */
+  /* ── Tipe toggle ── */
   .tipe-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -299,7 +128,7 @@
     font-weight: 500;
     cursor: pointer;
     text-align: center;
-    transition: all 0.15s;
+    transition: all .15s;
     color: var(--muted);
   }
   .tipe-btn.selected {
@@ -309,23 +138,160 @@
     font-weight: 600;
   }
 
-  /* Success screen */
-  .success-screen {
-    display: none;
-    text-align: center;
-    padding: 40px 20px;
-  }
-  .success-screen.show { display: block; }
-  .success-icon { font-size: 64px; margin-bottom: 16px; }
-  .success-screen h2 { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
-  .success-screen p { color: var(--muted); font-size: 14px; line-height: 1.6; margin-bottom: 24px; }
-  .detail-box {
-    background: var(--bg);
+  /* ── Kamera ── */
+  .camera-wrap {
+    position: relative;
     border-radius: 12px;
-    padding: 16px;
-    text-align: left;
-    margin-bottom: 20px;
+    overflow: hidden;
+    background: #f0ede8;
+    aspect-ratio: 3/4;
+    cursor: pointer;
+    border: 2px dashed var(--border);
+    transition: border-color .2s;
   }
+  .camera-wrap.active { border-style: solid; border-color: var(--accent); }
+  .camera-wrap video,
+  .camera-wrap img    { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+  .cam-placeholder {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: var(--muted);
+  }
+  .cam-icon          { font-size: 40px; }
+  .cam-placeholder p { font-size: 14px; font-weight: 500; }
+  .cam-placeholder span { font-size: 12px; color: #aaa; }
+
+  .cam-gradient {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 80px;
+    background: linear-gradient(to top, rgba(0,0,0,.5), transparent);
+    pointer-events: none;
+    display: none;
+  }
+  .cam-gradient.show { display: block; }
+
+  .shutter-btn {
+    position: absolute;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px; height: 60px;
+    background: white;
+    border-radius: 50%;
+    border: 3px solid rgba(255,255,255,.6);
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    box-shadow: 0 2px 10px rgba(0,0,0,.3);
+    transition: transform .1s;
+    z-index: 5;
+  }
+  .shutter-btn:active { transform: translateX(-50%) scale(.92); }
+
+  .retake-btn {
+    position: absolute;
+    top: 10px; right: 10px;
+    background: rgba(0,0,0,.5);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 12px;
+    cursor: pointer;
+    display: none;
+    z-index: 5;
+  }
+
+  /* ── GPS ── */
+  .gps-row { display: flex; align-items: center; gap: 10px; }
+  .gps-status {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 13px;
+    border-radius: 10px;
+    border: 1.5px solid var(--border);
+    font-size: 13px;
+    background: var(--bg);
+  }
+  .gps-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--muted);
+    flex-shrink: 0;
+  }
+  .gps-dot.ok      { background: var(--success); }
+  .gps-dot.loading { background: var(--warn); animation: pulse 1s infinite; }
+  .gps-dot.err     { background: var(--danger); }
+
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+  .gps-text   { color: var(--muted); font-size: 13px; }
+  .gps-coords { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+  .btn-gps {
+    padding: 11px 16px;
+    border-radius: 10px;
+    border: 1.5px solid var(--border);
+    background: var(--white);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    color: var(--accent);
+    transition: all .15s;
+    white-space: nowrap;
+  }
+  .btn-gps:active { background: var(--accent-light); }
+
+  .radius-badge {
+    margin-top: 8px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 500;
+    display: none;
+    align-items: center;
+    gap: 6px;
+  }
+  .radius-badge.ok  { background: var(--success-light); color: var(--success); display: flex; }
+  .radius-badge.out { background: var(--warn-light);    color: var(--warn);    display: flex; }
+
+  /* ── Submit button ── */
+  .btn-absen {
+    width: 100%;
+    padding: 17px;
+    border-radius: 14px;
+    border: none;
+    background: var(--accent);
+    color: white;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity .15s, transform .1s;
+    letter-spacing: -.2px;
+    margin-top: 8px;
+  }
+  .btn-absen:active   { transform: scale(.98); }
+  .btn-absen:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+
+  /* ── Success screen ── */
+  .success-screen         { display: none; text-align: center; padding: 40px 20px; }
+  .success-screen.show    { display: block; }
+  .success-icon           { font-size: 64px; margin-bottom: 16px; }
+  .success-screen h2      { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+  .success-screen p       { color: var(--muted); font-size: 14px; line-height: 1.6; margin-bottom: 24px; }
+
+  .detail-box { background: var(--bg); border-radius: 12px; padding: 16px; text-align: left; margin-bottom: 20px; }
   .detail-row {
     display: flex;
     justify-content: space-between;
@@ -336,6 +302,7 @@
   .detail-row:last-child { border-bottom: none; }
   .detail-key { color: var(--muted); }
   .detail-val { font-weight: 600; }
+
   .btn-lagi {
     width: 100%;
     padding: 14px;
@@ -348,7 +315,7 @@
     color: var(--text);
   }
 
-  /* Error / info toast */
+  /* ── Toast ── */
   .toast {
     position: fixed;
     bottom: 24px;
@@ -361,57 +328,29 @@
     font-size: 14px;
     font-weight: 500;
     z-index: 100;
-    transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
+    transition: transform .35s cubic-bezier(.34,1.56,.64,1);
     white-space: nowrap;
     max-width: 90vw;
     text-align: center;
   }
-  .toast.show { transform: translateX(-50%) translateY(0); }
+  .toast.show    { transform: translateX(-50%) translateY(0); }
   .toast.success { background: var(--success); }
-  .toast.error { background: var(--danger); }
-  .toast.warn { background: var(--warn); }
+  .toast.error   { background: var(--danger); }
+  .toast.warn    { background: var(--warn); }
 
   canvas { display: none; }
-
-.title-center{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  text-align:center;
-  margin-bottom:20px;
-}
-
-.title-main{
-  font-size:24px;
-  font-weight:800;
-  letter-spacing:1px;
-}
-
-.title-sub{
-  font-size:18px;
-  color:var(--muted);
-  margin-top:2px;
-}
-
-.header-time{
-  font-size:16px;
-  font-weight:600;
-  margin-top:2px;
-  color:var(--accent);
-}
-  
 </style>
 </head>
 <body>
 
+<!-- ── Header ── -->
 <div class="title-center">
   <div class="title-main">BENTUK RUANG</div>
   <div class="title-sub">AbsensiKu 📋</div>
   <div class="header-time" id="header-clock">--:--</div>
 </div>
 
-<!-- FORM ABSEN -->
+<!-- ── Form Screen ── -->
 <div class="container" id="form-screen">
 
   <div class="date-bar">
@@ -422,36 +361,37 @@
     <div class="jam-besar" id="jam-besar">--:--</div>
   </div>
 
-  <!-- Tipe absen -->
+  <!-- Tipe Absen -->
   <div class="card">
     <div class="card-title">Tipe Absen</div>
     <div class="tipe-row">
-      <button class="tipe-btn selected" id="btn-masuk" onclick="pilihTipe('masuk')">🟢 Masuk</button>
-      <button class="tipe-btn" id="btn-pulang" onclick="pilihTipe('pulang')">🔴 Pulang</button>
+      <button class="tipe-btn selected" id="btn-masuk"  onclick="pilihTipe('masuk')">🟢 Masuk</button>
+      <button class="tipe-btn"          id="btn-pulang" onclick="pilihTipe('pulang')">🔴 Pulang</button>
     </div>
   </div>
 
-  <!-- Data diri -->
+  <!-- Data Karyawan -->
   <div class="card">
     <div class="card-title">Data Karyawan</div>
     <div class="input-group">
       <label class="input-label">Nama Lengkap</label>
-      <!-- <input class="input" type="text" id="input-nama" placeholder="contoh: Arsene Wenger" autocomplete="name"> -->
-      <select class="input" id="input-nama" onchange="autoFillId()"><option value="">-- Pilih Nama --</option></select>    
-      </div>
-      <div class="input-group" style="margin-bottom:0">
-        <label class="input-label">ID Karyawan</label>
-        <!-- <input class="input" type="text" id="input-id" placeholder="contoh: BR-001 atau PRJ-001" autocomplete="off"> -->
-        <input class="input" type="text" id="input-id" readonly>
-      </div>
-      <div class="input-group">
-        <label class="input-label">Lokasi Kerja</label>
-        <select class="input" id="input-lokasi">
-        <option value="">-- Pilih Lokasi --</option></select>
-      </div>
+      <select class="input" id="input-nama" onchange="autoFillId()">
+        <option value="">-- Pilih Nama --</option>
+      </select>
+    </div>
+    <div class="input-group">
+      <label class="input-label">ID Karyawan</label>
+      <input class="input" type="text" id="input-id" readonly>
+    </div>
+    <div class="input-group" style="margin-bottom:0">
+      <label class="input-label">Lokasi Kerja</label>
+      <select class="input" id="input-lokasi">
+        <option value="">-- Pilih Lokasi --</option>
+      </select>
+    </div>
   </div>
 
-  <!-- Foto selfie -->
+  <!-- Foto Selfie -->
   <div class="card">
     <div class="card-title">Foto Selfie</div>
     <div class="camera-wrap" id="camera-wrap" onclick="handleCameraClick()">
@@ -461,10 +401,10 @@
         <span>Foto selfie diperlukan</span>
       </div>
       <video id="video-el" autoplay playsinline muted style="display:none;"></video>
-      <img id="foto-preview" style="display:none;" alt="Foto selfie">
+      <img   id="foto-preview" style="display:none;" alt="Foto selfie">
       <div class="cam-gradient" id="cam-gradient"></div>
       <button class="shutter-btn" id="shutter-btn" onclick="ambilFoto(event)">📸</button>
-      <button class="retake-btn" id="retake-btn" onclick="ulangiKamera(event)">Ulang</button>
+      <button class="retake-btn"  id="retake-btn"  onclick="ulangiKamera(event)">Ulang</button>
     </div>
     <canvas id="foto-canvas"></canvas>
   </div>
@@ -483,12 +423,11 @@
     <div class="radius-badge" id="radius-badge"></div>
   </div>
 
-  <!-- Submit -->
   <button class="btn-absen" id="btn-submit" onclick="submitAbsen()">Kirim Absensi</button>
 
 </div>
 
-<!-- SUCCESS SCREEN -->
+<!-- ── Success Screen ── -->
 <div class="container">
   <div class="success-screen" id="success-screen">
     <div class="success-icon">✅</div>
@@ -503,59 +442,68 @@
 
 <script>
 // =============================================
-// KONFIGURASI — EDIT DI SINI
+// KONFIGURASI
 // =============================================
-const SUPABASE_URL    = "https://szjlxhfawjopjyfacwxe.supabase.co";
-const SUPABASE_KEY    = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN6amx4aGZhd2pvcGp5ZmFjd3hlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzODU1MDksImV4cCI6MjA5MTk2MTUwOX0.-x6FGoEId7d6PwGRKTHYgs92bkrSpddX15vQlhMVazc";
+const SUPABASE_URL = 'https://szjlxhfawjopjyfacwxe.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN6amx4aGZhd2pvcGp5ZmFjd3hlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzODU1MDksImV4cCI6MjA5MTk2MTUwOX0.-x6FGoEId7d6PwGRKTHYgs92bkrSpddX15vQlhMVazc';
 
-const CLOUDINARY_CLOUD_NAME = '';
+const CLOUDINARY_CLOUD_NAME    = '';
 const CLOUDINARY_UPLOAD_PRESET = '';
-  
-// Koordinat kantor kamu (latitude, longitude)
-// Cara cari: buka Google Maps, klik kanan lokasi kantor → "What's here?"
-const KANTOR_LAT      = -8.621840340445894;   // contoh: Denpasar Bali
-const KANTOR_LNG      = 115.19565520233532;
-const RADIUS_METER    = 100;        // radius absen dari kantor (meter)
 
-// Cloudinary untuk upload foto (opsional, bisa dikosongkan)
-// const CLOUDINARY_CLOUD_NAME    = 'MASUKKAN_CLOUD_NAME';
-// const CLOUDINARY_UPLOAD_PRESET = 'MASUKKAN_UPLOAD_PRESET';
+// Koordinat kantor default (fallback jika tidak ada assign lokasi)
+const KANTOR_LAT    = -8.621840340445894;
+const KANTOR_LNG    = 115.19565520233532;
+const RADIUS_METER  = 100;
 // =============================================
 
 const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-// const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// State
-let tipeAbsen = 'masuk';
+// ── State ──
+let tipeAbsen  = 'masuk';
 let fotoDataURL = null;
-let gpsData = null;
+let gpsData     = null;
 let videoStream = null;
 let kameraAktif = false;
+let lokasiKerja = null;
+let allLokasi   = [];
 
-// 🔥 TAMBAHAN
-// Jam
-function updateJam() {
-  const now = new Date();
-  const jam = now.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' });
-  const jamDet = now.toLocaleTimeString('id-ID');
-  document.getElementById('header-clock').textContent = jamDet;
-  document.getElementById('jam-besar').textContent = jam;
-  document.getElementById('hari-ini').textContent = now.toLocaleDateString('id-ID', { weekday:'long' });
-  document.getElementById('tanggal-ini').textContent = now.toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric' });
-}
+// =============================================
+// INISIALISASI
+// =============================================
 document.addEventListener('DOMContentLoaded', () => {
   updateJam();
-  loadKaryawanList();
   setInterval(updateJam, 1000);
+  loadKaryawanList();
+  loadAllLokasi();
 });
-// Tipe absen
+
+document.getElementById('input-lokasi').addEventListener('change', function () {
+  lokasiKerja = this.value ? JSON.parse(this.value) : null;
+});
+
+// =============================================
+// JAM & TANGGAL
+// =============================================
+function updateJam() {
+  const now = new Date();
+  document.getElementById('header-clock').textContent = now.toLocaleTimeString('id-ID');
+  document.getElementById('jam-besar').textContent    = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+  document.getElementById('hari-ini').textContent     = now.toLocaleDateString('id-ID', { weekday: 'long' });
+  document.getElementById('tanggal-ini').textContent  = now.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+// =============================================
+// TIPE ABSEN
+// =============================================
 function pilihTipe(tipe) {
   tipeAbsen = tipe;
-  document.getElementById('btn-masuk').classList.toggle('selected', tipe === 'masuk');
+  document.getElementById('btn-masuk').classList.toggle('selected',  tipe === 'masuk');
   document.getElementById('btn-pulang').classList.toggle('selected', tipe === 'pulang');
 }
 
-// Kamera
+// =============================================
+// KAMERA
+// =============================================
 function handleCameraClick() {
   if (kameraAktif || fotoDataURL) return;
   bukaKamera();
@@ -563,34 +511,40 @@ function handleCameraClick() {
 
 async function bukaKamera() {
   try {
-    videoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width:{ideal:720}, height:{ideal:960} }, audio: false });
-    const v = document.getElementById('video-el');
-    v.srcObject = videoStream;
-    v.style.display = 'block';
+    videoStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'user', width: { ideal: 720 }, height: { ideal: 960 } },
+      audio: false
+    });
+
+    const video = document.getElementById('video-el');
+    video.srcObject = videoStream;
+    video.style.display = 'block';
+
     document.getElementById('cam-placeholder').style.display = 'none';
     document.getElementById('cam-gradient').classList.add('show');
     document.getElementById('shutter-btn').style.display = 'flex';
     document.getElementById('camera-wrap').classList.add('active');
     kameraAktif = true;
-  } catch(e) {
+  } catch {
     toast('Kamera tidak bisa dibuka. Izinkan akses kamera di browser.', 'error');
   }
 }
 
 function ambilFoto(e) {
   e.stopPropagation();
-  const video = document.getElementById('video-el');
+
+  const video  = document.getElementById('video-el');
   const canvas = document.getElementById('foto-canvas');
-  canvas.width = video.videoWidth || 480;
+  canvas.width  = video.videoWidth  || 480;
   canvas.height = video.videoHeight || 640;
   canvas.getContext('2d').drawImage(video, 0, 0);
   fotoDataURL = canvas.toDataURL('image/jpeg', 0.75);
 
-  document.getElementById('foto-preview').src = fotoDataURL;
+  document.getElementById('foto-preview').src          = fotoDataURL;
   document.getElementById('foto-preview').style.display = 'block';
-  video.style.display = 'none';
+  video.style.display                                   = 'none';
   document.getElementById('shutter-btn').style.display = 'none';
-  document.getElementById('retake-btn').style.display = 'block';
+  document.getElementById('retake-btn').style.display  = 'block';
 
   if (videoStream) { videoStream.getTracks().forEach(t => t.stop()); videoStream = null; }
   kameraAktif = false;
@@ -601,225 +555,106 @@ function ulangiKamera(e) {
   e.stopPropagation();
   fotoDataURL = null;
   document.getElementById('foto-preview').style.display = 'none';
-  document.getElementById('retake-btn').style.display = 'none';
+  document.getElementById('retake-btn').style.display   = 'none';
   document.getElementById('cam-placeholder').style.display = 'flex';
   document.getElementById('cam-gradient').classList.remove('show');
   document.getElementById('camera-wrap').classList.remove('active');
   bukaKamera();
 }
 
+// =============================================
 // GPS
+// =============================================
 function hitungJarak(lat1, lon1, lat2, lon2) {
-  const R = 6371000;
-  const dLat = (lat2-lat1) * Math.PI/180;
-  const dLon = (lon2-lon1) * Math.PI/180;
-  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  const R    = 6371000;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a    = Math.sin(dLat / 2) ** 2
+             + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180)
+             * Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function getLokasiTerdekat(userLat, userLng, listLokasi) {
+  if (!listLokasi?.length) return { lokasi: null, jarak: 0, dalamRadius: false };
+
+  let minJarak = Infinity;
+  let lokasiTerpilih = null;
+
+  for (const loc of listLokasi) {
+    const jarak = hitungJarak(userLat, userLng, loc.lat, loc.lng);
+    if (jarak < minJarak) { minJarak = jarak; lokasiTerpilih = loc; }
+  }
+
+  return {
+    lokasi:      lokasiTerpilih,
+    jarak:       Math.round(minJarak),
+    dalamRadius: lokasiTerpilih ? minJarak <= (lokasiTerpilih.radius || 100) : false
+  };
 }
 
 function deteksiGPS() {
-  if (!lokasiKerja || !lokasiKerja.lat) {
-  toast('Pilih lokasi dulu', 'warn');
-  return;
-}
-  const idKaryawan = document.getElementById('input-id').value.trim();
-  if (!idKaryawan) {
+  if (!lokasiKerja?.lat) { toast('Pilih lokasi dulu', 'warn'); return; }
+  if (!document.getElementById('input-id').value.trim()) {
     toast('Isi ID karyawan dulu sebelum deteksi GPS', 'warn');
     return;
   }
+
   const dot = document.getElementById('gps-dot');
   const txt = document.getElementById('gps-text');
-  dot.className = 'gps-dot loading';
+  dot.className   = 'gps-dot loading';
   txt.textContent = 'Mendeteksi...';
 
   if (!navigator.geolocation) {
-    dot.className = 'gps-dot err';
+    dot.className   = 'gps-dot err';
     txt.textContent = 'GPS tidak didukung';
     return;
   }
 
   navigator.geolocation.getCurrentPosition(
-  (pos) => {
-    const lat = pos.coords.latitude;
-    const lng = pos.coords.longitude;
-    const acc = Math.round(pos.coords.accuracy);
+    (pos) => {
+      const { latitude: lat, longitude: lng, accuracy: acc } = pos.coords;
 
-    if (acc > 1000) {
-      toast('GPS belum akurat, tunggu sebentar lalu coba lagi', 'warn');
-      return;
-    }
+      if (acc > 1000)                                { toast('GPS belum akurat, tunggu sebentar lalu coba lagi', 'warn');  return; }
+      if (Math.abs(lat) > 90 || Math.abs(lng) > 180
+          || (lat === 0 && lng === 0))               { toast('Koordinat GPS tidak valid, coba lagi', 'error'); return; }
 
-    if (
-      Math.abs(lat) > 90 ||
-      Math.abs(lng) > 180 ||
-      (lat === 0 && lng === 0)
-    ) {
-      toast('Koordinat GPS tidak valid, coba lagi', 'error');
-      return;
-    }
+      gpsData = { lat, lng, acc: Math.round(acc), time: Date.now() };
 
-    gpsData = { lat, lng, acc, time: Date.now() };
+      document.getElementById('gps-dot').className   = 'gps-dot ok';
+      document.getElementById('gps-text').textContent = 'Lokasi terdeteksi';
 
-    const dot = document.getElementById('gps-dot');
-    const txt = document.getElementById('gps-text');
+      const coords = document.getElementById('gps-coords');
+      coords.textContent    = `${lat.toFixed(6)}, ${lng.toFixed(6)} (akurasi ±${Math.round(acc)}m)`;
+      coords.style.display  = 'block';
 
-    dot.className = 'gps-dot ok';
-    txt.textContent = 'Lokasi terdeteksi';
+      const jarakM  = hitungJarak(lat, lng, lokasiKerja.lat, lokasiKerja.lng);
+      const jarakRound = Math.round(jarakM);
+      const jarakTxt   = jarakM < 1000 ? `${jarakRound} m` : `${(jarakM / 1000).toFixed(2)} km`;
+      const badge   = document.getElementById('radius-badge');
 
-    const coords = document.getElementById('gps-coords');
-    coords.textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)} (akurasi ±${acc}m)`;
-    coords.style.display = 'block';
-
-    const jarakMeter = hitungJarak(lat, lng, lokasiKerja.lat, lokasiKerja.lng);
-    const jarak = Math.round(jarakMeter);
-    const jarakKm = (jarakMeter / 1000).toFixed(2);
-
-    const badge = document.getElementById('radius-badge');
-
-    let jarakText = jarakMeter < 1000
-      ? `${Math.round(jarakMeter)} m`
-      : `${jarakKm} km`;
-
-    if (jarak <= lokasiKerja.radius) {
-      badge.className = 'radius-badge ok';
-      badge.innerHTML = `✅ Di area kantor (${jarakKm} km dari kantor)`;
-    } else {
-      badge.className = 'radius-badge out';
-      badge.innerHTML = `⚠️ Di luar area kantor (${jarakText} dari kantor)`;
-    }
-
-    toast('Lokasi berhasil dideteksi ✓', 'success');
-  },
-  (err) => {
-    const dot = document.getElementById('gps-dot');
-    const txt = document.getElementById('gps-text');
-
-    dot.className = 'gps-dot err';
-    txt.textContent = 'Gagal deteksi GPS';
-
-    toast('GPS gagal diakses', 'error');
-  },
-  { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
-);
-}  
-// Upload foto ke Cloudinary (opsional)
-async function uploadFoto(dataURL) {
-  if (!CLOUDINARY_CLOUD_NAME || CLOUDINARY_CLOUD_NAME === 'MASUKKAN_CLOUD_NAME') return null;
-  try {
-    const blob = await (await fetch(dataURL)).blob();
-    const fd = new FormData();
-    fd.append('file', blob);
-    fd.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, { method:'POST', body:fd });
-    const data = await res.json();
-    return data.secure_url || null;
-  } catch { return null; }
-}
-
-async function getShiftDetail(idKaryawan) {
-  const hari = new Date().getDay();
-
-  const { data } = await db
-    .from('karyawan_shift')
-    .select(`
-      shift:shift_id (
-        id,
-        nama_shift,
-        toleransi_telat,
-        shift_detail (*)
-      )
-    `)
-    .eq('id_karyawan', idKaryawan)
-    .single();
-
-  if (!data) return null;
-
-  const detail = data.shift.shift_detail.find(d => d.hari === hari);
-
-  return {
-    ...data.shift,
-    detail
-  };
-}
-
-async function evaluasiAbsensi(idKaryawan, tipe) {
-  const shift = await getShiftDetail(idKaryawan);
-  if (!shift || !shift.detail) return null;
-
-  const now = new Date();
-
-  const toDate = (jam) => {
-    const [h, m] = jam.split(':');
-    const d = new Date();
-    d.setHours(h, m, 0);
-    return d;
-  };
-
-  const masuk = toDate(shift.detail.jam_masuk);
-  const pulang = toDate(shift.detail.jam_pulang);
-
-  let telat = 0;
-  let lembur = 0;
-
-  if (tipe === 'masuk') {
-    telat = (now - masuk) / 60000 - shift.toleransi_telat;
-    if (telat < 0) telat = 0;
-  }
-
-  if (tipe === 'pulang') {
-    lembur = (now - pulang) / 60000;
-    if (lembur < 0) lembur = 0;
-  }
-
-  return {
-    telat: Math.round(telat),
-    lembur: Math.round(lembur),
-    is_libur: shift.detail.is_libur
-  };
-}
-
-// ─── CEK STATUS KARYAWAN & LOKASI ───
-async function cekKaryawanDanLokasi(idKaryawan) {
-  // Coba dari Supabase
-  try {
-    const { data: karyData } = await db.from('karyawan').select('*').eq('id_karyawan', idKaryawan).maybeSingle();
-    if (karyData) {
-      if (karyData.status === 'nonaktif') {
-        return { ok: false, msg: 'ID karyawan ini sudah dinonaktifkan. Hubungi admin.' };
+      if (jarakRound <= lokasiKerja.radius) {
+        badge.className = 'radius-badge ok';
+        badge.innerHTML = `✅ Di area kantor (${jarakTxt} dari kantor)`;
+      } else {
+        badge.className = 'radius-badge out';
+        badge.innerHTML = `⚠️ Di luar area kantor (${jarakTxt} dari kantor)`;
       }
-      // Ambil lokasi assign
-      const { data: assignData } = await db.from('assign_lokasi').select('*').eq('id_karyawan', idKaryawan).maybeSingle();
-      if (assignData) {
-        const { data: lokData } = await db.from('lokasi').select('*').eq('id', assignData.id_lokasi).maybeSingle();
-        if (lokData && lokData.lat && lokData.lng) {
-          return { ok: true, nama: idKaryawan, lat: lokData.lat, lng: lokData.lng, radius: lokData.radius || 100, namaLokasi: lokData.nama };
-        }
-      }
-      return { ok: true, nama: idKaryawan, lat: KANTOR_LAT, lng: KANTOR_LNG, radius: RADIUS_METER, namaLokasi: 'Kantor' };
-    }
-  } catch(e) {}
 
-  // Fallback: cek localStorage (dari admin.html)
-  try {
-    const karyawan = JSON.parse(localStorage.getItem('karyawan') || '[]');
-    const k = karyawan.find(x => x.id_karyawan === idKaryawan);
-    if (k && k.status === 'nonaktif') {
-      return { ok: false, msg: 'ID karyawan ini sudah dinonaktifkan. Hubungi admin.' };
-    }
-    const assign = JSON.parse(localStorage.getItem('assign') || '[]');
-    const a = assign.find(x => x.id_karyawan === idKaryawan);
-    if (a) {
-      const lokasi = JSON.parse(localStorage.getItem('lokasi') || '[]');
-      const l = lokasi.find(x => x.id === a.id_lokasi);
-      if (l && l.lat && l.lng) {
-        return { ok: true, lat: l.lat, lng: l.lng, radius: l.radius || 100, namaLokasi: l.nama };
-      }
-    }
-  } catch(e) {}
-
-  return { ok: true, nama: idKaryawan, lat: KANTOR_LAT, lng: KANTOR_LNG, radius: RADIUS_METER, namaLokasi: 'Kantor' };
+      toast('Lokasi berhasil dideteksi ✓', 'success');
+    },
+    () => {
+      document.getElementById('gps-dot').className    = 'gps-dot err';
+      document.getElementById('gps-text').textContent = 'Gagal deteksi GPS';
+      toast('GPS gagal diakses', 'error');
+    },
+    { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+  );
 }
 
+// =============================================
+// DATA KARYAWAN & LOKASI
+// =============================================
 async function loadKaryawanList() {
   const { data, error } = await db
     .from('karyawan')
@@ -827,16 +662,10 @@ async function loadKaryawanList() {
     .eq('status', 'aktif')
     .order('nama');
 
-  if (error) {
-    console.error(error);
-    return;
-  }
+  if (error) { console.error(error); return; }
 
   const select = document.getElementById('input-nama');
   select.innerHTML = '<option value="">-- Pilih Nama --</option>';
-  // const nama = select.options[select.selectedIndex].text;
-  // const id   = select.value;
-
   data.forEach(k => {
     select.innerHTML += `<option value="${k.id_karyawan}">${k.nama}</option>`;
   });
@@ -844,149 +673,192 @@ async function loadKaryawanList() {
 
 function autoFillId() {
   const select = document.getElementById('input-nama');
-  const selectedOption = select.options[select.selectedIndex];
-
-  const id = selectedOption.value;
-
+  const id     = select.value;
   document.getElementById('input-id').value = id || '';
-  if (id) {
-  loadLokasiByKaryawan(id);
-  }
+  if (id) loadLokasiByKaryawan(id);
 }
-  document.getElementById('input-lokasi').addEventListener('change', function () {
-  if (!this.value) {
-    lokasiKerja = null;
+
+async function loadLokasiByKaryawan(idKaryawan) {
+  const { data, error } = await db
+    .from('assign_lokasi')
+    .select('lokasi:lokasi (id, nama, lat, lng, radius)')
+    .eq('id_karyawan', idKaryawan);
+
+  if (error) { toast('Gagal load lokasi', 'error'); return; }
+
+  const select = document.getElementById('input-lokasi');
+  select.innerHTML = '<option value="">-- Pilih Lokasi --</option>';
+  data.forEach(row => {
+    const loc = row.lokasi;
+    select.innerHTML += `<option value='${JSON.stringify(loc)}'>${loc.nama}</option>`;
+  });
+  lokasiKerja = null;
+}
+
+async function loadAllLokasi() {
+  const { data, error } = await db.from('lokasi').select('*');
+  if (error) { console.error('Gagal load lokasi:', error); return; }
+  allLokasi = data;
+}
+
+// =============================================
+// SHIFT & EVALUASI ABSENSI
+// =============================================
+async function getShiftDetail(idKaryawan) {
+  const hari = new Date().getDay();
+  const { data } = await db
+    .from('karyawan_shift')
+    .select('shift:shift_id (id, nama_shift, toleransi_telat, shift_detail (*))')
+    .eq('id_karyawan', idKaryawan)
+    .single();
+
+  if (!data) return null;
+  return { ...data.shift, detail: data.shift.shift_detail.find(d => d.hari === hari) };
+}
+
+async function evaluasiAbsensi(idKaryawan, tipe) {
+  const shift = await getShiftDetail(idKaryawan);
+  if (!shift?.detail) return null;
+
+  const toDate = (jam) => {
+    const [h, m] = jam.split(':');
+    const d = new Date();
+    d.setHours(h, m, 0, 0);
+    return d;
+  };
+
+  const now    = new Date();
+  const masuk  = toDate(shift.detail.jam_masuk);
+  const pulang = toDate(shift.detail.jam_pulang);
+
+  const telat  = tipe === 'masuk'   ? Math.max(0, (now - masuk)  / 60000 - shift.toleransi_telat) : 0;
+  const lembur = tipe === 'pulang'  ? Math.max(0, (now - pulang) / 60000) : 0;
+
+  return { telat: Math.round(telat), lembur: Math.round(lembur), is_libur: shift.detail.is_libur };
+}
+
+// =============================================
+// CEK STATUS KARYAWAN
+// =============================================
+async function cekKaryawanDanLokasi(idKaryawan) {
+  try {
+    const { data: karyData } = await db.from('karyawan').select('*').eq('id_karyawan', idKaryawan).maybeSingle();
+
+    if (karyData) {
+      if (karyData.status === 'nonaktif') {
+        return { ok: false, msg: 'ID karyawan ini sudah dinonaktifkan. Hubungi admin.' };
+      }
+
+      const { data: assignData } = await db.from('assign_lokasi').select('*').eq('id_karyawan', idKaryawan).maybeSingle();
+      if (assignData) {
+        const { data: lokData } = await db.from('lokasi').select('*').eq('id', assignData.id_lokasi).maybeSingle();
+        if (lokData?.lat && lokData?.lng) {
+          return { ok: true, lat: lokData.lat, lng: lokData.lng, radius: lokData.radius || 100, namaLokasi: lokData.nama };
+        }
+      }
+    }
+  } catch { /* fallback below */ }
+
+  // Fallback ke localStorage (dari admin.html)
+  try {
+    const karyawan = JSON.parse(localStorage.getItem('karyawan') || '[]');
+    const k = karyawan.find(x => x.id_karyawan === idKaryawan);
+    if (k?.status === 'nonaktif') return { ok: false, msg: 'ID karyawan ini sudah dinonaktifkan. Hubungi admin.' };
+
+    const assign = JSON.parse(localStorage.getItem('assign') || '[]');
+    const a = assign.find(x => x.id_karyawan === idKaryawan);
+    if (a) {
+      const lokasi = JSON.parse(localStorage.getItem('lokasi') || '[]');
+      const l = lokasi.find(x => x.id === a.id_lokasi);
+      if (l?.lat && l?.lng) return { ok: true, lat: l.lat, lng: l.lng, radius: l.radius || 100, namaLokasi: l.nama };
+    }
+  } catch { /* ignore */ }
+
+  return { ok: true, lat: KANTOR_LAT, lng: KANTOR_LNG, radius: RADIUS_METER, namaLokasi: 'Kantor' };
+}
+
+// =============================================
+// SUBMIT ABSENSI
+// =============================================
+async function submitAbsen() {
+  const select      = document.getElementById('input-nama');
+  const nama        = select.options[select.selectedIndex]?.text || '';
+  const idKaryawan  = document.getElementById('input-id').value.trim();
+
+  if (!nama)        { toast('Masukkan nama lengkap dulu!', 'error'); return; }
+  if (!idKaryawan)  { toast('Masukkan ID karyawan!', 'error');       return; }
+  if (!fotoDataURL) { toast('Ambil foto selfie dulu!', 'error');     return; }
+  if (!gpsData)     { toast('Deteksi lokasi GPS dulu!', 'error');    return; }
+  if (Date.now() - gpsData.time > 60000) { toast('GPS sudah kadaluarsa, deteksi ulang', 'warn'); return; }
+  if (!lokasiKerja) { toast('Pilih lokasi kerja', 'warn');           return; }
+
+  if (Math.abs(gpsData.lat) > 90 || Math.abs(gpsData.lng) > 180 || (gpsData.lat === 0 && gpsData.lng === 0)) {
+    toast('Koordinat GPS tidak valid, coba lagi', 'error');
     return;
   }
 
-  lokasiKerja = JSON.parse(this.value);
-});
-  
-// Submit
-async function submitAbsen() {
-  // const nama = document.getElementById('input-nama').value.trim();
-  const select = document.getElementById('input-nama');
-  const nama = select.options[select.selectedIndex]?.text || '';
-  // const idKaryawan = select.value;
-  const idKaryawan = document.getElementById('input-id').value.trim();
-  // const eval = await evaluasiAbsensi(idKaryawan, tipeAbsen);
-  const hasilEval = await evaluasiAbsensi(idKaryawan, tipeAbsen);
-
-  if (!nama) { toast('Masukkan nama lengkap dulu!', 'error'); return; }
-  if (!idKaryawan) { toast('Masukkan ID karyawan!', 'error'); return; }
-  if (!fotoDataURL) { toast('Ambil foto selfie dulu!', 'error'); return; }
-  if (!gpsData) { toast('Deteksi lokasi GPS dulu!', 'error'); return; }
-  if (Date.now() - gpsData.time > 60000) { toast('GPS sudah kadaluarsa, deteksi ulang', 'warn'); return; }
-  if (!lokasiKerja) { toast('Pilih lokasi kerja', 'warn'); return; }
-
   const btn = document.getElementById('btn-submit');
-  btn.disabled = true;
+  btn.disabled    = true;
   btn.textContent = '⏳ Memverifikasi ID...';
 
-  // ─── Cek status & ambil lokasi ───
   const cek = await cekKaryawanDanLokasi(idKaryawan);
   if (!cek.ok) {
     toast(cek.msg, 'error');
-    btn.disabled = false;
-    btn.textContent = 'Kirim Absensi';
+    btn.disabled = false; btn.textContent = 'Kirim Absensi';
     return;
   }
-  // if (cek.ok && nama !== cek.nama) {
-  // toast('Nama tidak sesuai dengan ID!', 'error');
-  // btn.disabled = false;
-  // btn.textContent = 'Kirim Absensi';
-  // return;
-  // }
- // const lokasiLat    = cek.lat;
- // const lokasiLng    = cek.lng;
- // const lokasiRadius = cek.radius;
 
-  // 🔥 sync ke global (biar konsisten)
-lokasiKerja = {
-  lat: cek.lat,
-  lng: cek.lng,
-  radius: cek.radius,
-  nama: cek.namaLokasi
-};
+  // Sinkronisasi lokasi kerja dari hasil verifikasi
+  lokasiKerja = { lat: cek.lat, lng: cek.lng, radius: cek.radius, nama: cek.namaLokasi };
+
+  if (!allLokasi.length) {
+    toast('Data lokasi belum siap, tunggu sebentar...', 'warn');
+    btn.disabled = false; btn.textContent = 'Kirim Absensi';
+    return;
+  }
+
+  if (gpsData.acc > 100) toast('Akurasi GPS terlalu rendah, coba di luar ruangan', 'warn');
 
   btn.textContent = '⏳ Menyimpan...';
 
-  const now = new Date();
-  const jam = now.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' });
-  const tanggal = now.toISOString().split('T')[0];
-  const jamFull = now.toISOString();
-  // const jarak = Math.round(hitungJarak(gpsData.lat, gpsData.lng, lokasiLat, lokasiLng));
-  
-  
-  // Validasi koordinat aneh
-if (
-  Math.abs(gpsData.lat) > 90 ||
-  Math.abs(gpsData.lng) > 180 ||
-  gpsData.lat === 0 && gpsData.lng === 0
-) {
-  toast('Koordinat GPS tidak valid, coba lagi', 'error');
-  return;
-}
+  const hasilEval   = await evaluasiAbsensi(idKaryawan, tipeAbsen);
+  const hasil       = getLokasiTerdekat(gpsData.lat, gpsData.lng, allLokasi);
+  const jarak       = Math.round(hitungJarak(gpsData.lat, gpsData.lng, lokasiKerja.lat, lokasiKerja.lng));
+  const diKantor    = jarak <= lokasiKerja.radius;
+  const now         = new Date();
 
-// Validasi akurasi
-if (gpsData.acc > 100) {
-  toast('Akurasi GPS terlalu rendah, coba di luar ruangan', 'warn');
-}
+  if (!diKantor) toast('Anda berada di luar area kantor (tetap diizinkan)', 'warn');
 
-// Hitung jarak
-const jarak = Math.round(
-  hitungJarak(
-    gpsData.lat,
-    gpsData.lng,
-    lokasiKerja.lat,
-    lokasiKerja.lng
-  )
-);
-
-// const diKantor = jarak <= lokasiKerja.radius;
-let diKantor = jarak <= lokasiKerja.radius;
-if (!diKantor) {
-  toast('Anda berada di luar area kantor (tetap diizinkan)', 'warn');
-}
-
-  // Upload foto
-  let fotoUrl = null;
-  //if (CLOUDINARY_CLOUD_NAME !== 'MASUKKAN_CLOUD_NAME') {
-  //  btn.textContent = '⏳ Upload foto...';
-  //  fotoUrl = await uploadFoto(fotoDataURL);
-  //}
-
-  // Simpan ke Supabase
- try {
-  const { error } = await db.from('absensi').insert([{
-    nama,
-    id_karyawan: idKaryawan,
-    tipe: tipeAbsen,
-    jam,
-    tanggal,
-    timestamp: jamFull,
-    latitude: gpsData.lat,
-    longitude: gpsData.lng,
-    akurasi_gps: gpsData.acc,
-    jarak_kantor: jarak,
-    di_area_kantor: diKantor,
-    foto_url: null, // penting kalau kolom ada
-    metode: 'mobile',
-    telat_menit: hasilEval?.telat || 0,
-    lembur_menit: hasilEval?.lembur || 0,
-    is_libur: hasilEval?.is_libur || false,
+  try {
+    const { error } = await db.from('absensi').insert([{
+      nama,
+      id_karyawan:   idKaryawan,
+      tipe:          tipeAbsen,
+      jam:           now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+      tanggal:       now.toISOString().split('T')[0],
+      timestamp:     now.toISOString(),
+      latitude:      gpsData.lat,
+      longitude:     gpsData.lng,
+      akurasi_gps:   gpsData.acc,
+      lokasi_nama:   hasil.lokasi?.nama || lokasiKerja?.nama || 'Unknown',
+      lokasi_id:     hasil.lokasi?.id   || null,
+      jarak_kantor:  hasil.jarak        || jarak,
+      di_area_kantor: hasil.dalamRadius ?? diKantor,
+      metode:        'mobile',
+      telat_menit:   hasilEval?.telat    || 0,
+      lembur_menit:  hasilEval?.lembur   || 0,
+      is_libur:      hasilEval?.is_libur || false,
     }]);
 
     if (error) {
-    if (error.message.includes('duplicate key')) {
-      toast(`Sudah absen ${tipeAbsen} hari ini`, 'warn');
-    } else {
-      toast('Gagal menyimpan data', 'error');
+      if (error.message.includes('duplicate key')) {
+        toast(`Sudah absen ${tipeAbsen} hari ini`, 'warn');
+      } else {
+        toast('Gagal menyimpan data', 'error');
+      }
+      btn.disabled = false; btn.textContent = 'Kirim Absensi';
+      return;
     }
-    btn.disabled = false;
-    btn.textContent = 'Kirim Absensi';
-    return;
-  }
 
     // Tampilkan sukses
     document.getElementById('form-screen').style.display = 'none';
@@ -995,112 +867,57 @@ if (!diKantor) {
       <div class="detail-row"><span class="detail-key">Nama</span><span class="detail-val">${nama}</span></div>
       <div class="detail-row"><span class="detail-key">ID</span><span class="detail-val">${idKaryawan}</span></div>
       <div class="detail-row"><span class="detail-key">Tipe</span><span class="detail-val">${tipeAbsen === 'masuk' ? '🟢 Masuk' : '🔴 Pulang'}</span></div>
-      <div class="detail-row"><span class="detail-key">Jam</span><span class="detail-val">${jam}</span></div>
-      <div class="detail-row"><span class="detail-key">Tanggal</span><span class="detail-val">${now.toLocaleDateString('id-ID', {day:'numeric',month:'long',year:'numeric'})}</span></div>
+      <div class="detail-row"><span class="detail-key">Jam</span><span class="detail-val">${now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}</span></div>
+      <div class="detail-row"><span class="detail-key">Tanggal</span><span class="detail-val">${now.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</span></div>
       <div class="detail-row"><span class="detail-key">Lokasi</span><span class="detail-val">${diKantor ? '✅ ' + cek.namaLokasi : '⚠️ Luar area'} (${jarak}m)</span></div>
     `;
 
-  } catch(err) {
+  } catch (err) {
     console.error(err);
     toast('Gagal menyimpan. Cek koneksi internet atau konfigurasi Supabase.', 'error');
-    btn.disabled = false;
-    btn.textContent = 'Kirim Absensi';
+    btn.disabled = false; btn.textContent = 'Kirim Absensi';
   }
 }
 
+// =============================================
+// RESET FORM
+// =============================================
 function absenLagi() {
   document.getElementById('form-screen').style.display = 'block';
   document.getElementById('success-screen').classList.remove('show');
-  document.getElementById('input-nama').value = '';
-  document.getElementById('input-id').value = '';
+  document.getElementById('input-nama').value  = '';
+  document.getElementById('input-id').value    = '';
+  document.getElementById('input-lokasi').innerHTML = '<option value="">-- Pilih Lokasi --</option>';
+
   fotoDataURL = null;
-  gpsData = null;
-  document.getElementById('foto-preview').style.display = 'none';
-  document.getElementById('retake-btn').style.display = 'none';
+  gpsData     = null;
+  lokasiKerja = null;
+
+  document.getElementById('foto-preview').style.display    = 'none';
+  document.getElementById('retake-btn').style.display      = 'none';
   document.getElementById('cam-placeholder').style.display = 'flex';
   document.getElementById('cam-gradient').classList.remove('show');
   document.getElementById('camera-wrap').classList.remove('active');
-  document.getElementById('gps-dot').className = 'gps-dot';
-  document.getElementById('gps-text').textContent = 'Belum terdeteksi';
-  document.getElementById('gps-coords').style.display = 'none';
-  document.getElementById('radius-badge').className = 'radius-badge';
-  document.getElementById('btn-submit').disabled = false;
-  document.getElementById('btn-submit').textContent = 'Kirim Absensi';
+  document.getElementById('gps-dot').className             = 'gps-dot';
+  document.getElementById('gps-text').textContent          = 'Belum terdeteksi';
+  document.getElementById('gps-coords').style.display      = 'none';
+  document.getElementById('radius-badge').className        = 'radius-badge';
+
+  const btn = document.getElementById('btn-submit');
+  btn.disabled    = false;
+  btn.textContent = 'Kirim Absensi';
 }
 
-// Toast
-function toast(msg, type='') {
+// =============================================
+// TOAST
+// =============================================
+function toast(msg, type = '') {
   const el = document.getElementById('toast');
   el.textContent = msg;
-  el.className = 'toast ' + type;
+  el.className   = 'toast ' + type;
   el.classList.add('show');
   setTimeout(() => el.classList.remove('show'), 3200);
 }
-
-document.getElementById('input-id').addEventListener('change', async (e) => {
-  const id = e.target.value.trim();
-  if (!id) return;
-
-  const cek = await cekKaryawanDanLokasi(id);
-
-  if (!cek.ok) {
-    toast(cek.msg, 'error');
-    return;
-  }
-
-// 🔥 SET lokasi kerja dari assign
-  lokasiKerja = {
-    lat: cek.lat,
-    lng: cek.lng,
-    radius: cek.radius,
-    nama: cek.namaLokasi
-  };
-
-  console.log('Lokasi kerja:', lokasiKerja);
-});
-
-let lokasiKerja = null;
-
-async function loadLokasiByKaryawan(idKaryawan) {
-  const { data, error } = await db
-    .from('assign_lokasi')
-    .select(`
-      lokasi:lokasi (
-        id,
-        nama,
-        lat,
-        lng,
-        radius
-      )
-    `)
-    .eq('id_karyawan', idKaryawan);
-
-  if (error) {
-    toast('Gagal load lokasi', 'error');
-    return;
-  }
-
-  const select = document.getElementById('input-lokasi');
-  select.innerHTML = '<option value="">-- Pilih Lokasi --</option>';
-
-  data.forEach(row => {
-    const loc = row.lokasi;
-    select.innerHTML += `<option value='${JSON.stringify(loc)}'>${loc.nama}</option>`;
-  });
-}
-
-function updateClock(){
-  const now = new Date();
-  const time = now.toLocaleTimeString('id-ID', {
-    hour: '2-digit',
-    minute: '2-digit'
-  });
-  document.getElementById('header-clock').textContent = time;
-}
-
-setInterval(updateClock, 1000);
-updateClock();
-  
 </script>
 </body>
 </html>
