@@ -546,6 +546,7 @@ function updateJam() {
 document.addEventListener('DOMContentLoaded', () => {
   updateJam();
   loadKaryawanList();
+  loadAllLokasi(); 
   setInterval(updateJam, 1000);
 });
 // Tipe absen
@@ -595,6 +596,32 @@ function ambilFoto(e) {
   if (videoStream) { videoStream.getTracks().forEach(t => t.stop()); videoStream = null; }
   kameraAktif = false;
   toast('Foto berhasil diambil ✓', 'success');
+}
+
+function getLokasiTerdekat(userLat, userLng, listLokasi) {
+  if (!listLokasi || listLokasi.length === 0) {
+    return { lokasi: null, jarak: 0, dalamRadius: false };
+  }
+
+  let minJarak = Infinity;
+  let lokasiTerpilih = null;
+
+  listLokasi.forEach(loc => {
+    const jarak = hitungJarak(userLat, userLng, loc.lat, loc.lng);
+
+    if (jarak < minJarak) {
+      minJarak = jarak;
+      lokasiTerpilih = loc;
+    }
+  });
+
+  return {
+    lokasi: lokasiTerpilih,
+    jarak: Math.round(minJarak),
+    dalamRadius: lokasiTerpilih
+      ? minJarak <= (lokasiTerpilih.radius || 100)
+      : false
+  };
 }
 
 function ulangiKamera(e) {
@@ -941,7 +968,12 @@ const jarak = Math.round(
     lokasiKerja.lat,
     lokasiKerja.lng
   )
-);
+); 
+
+if (!allLokasi || allLokasi.length === 0) {
+  toast('Data lokasi belum siap, tunggu sebentar...', 'warn');
+  return;
+}
 
 // 🔥 cari lokasi terdekat dari semua lokasi
 const hasil = getLokasiTerdekat(
@@ -978,11 +1010,11 @@ if (!diKantor) {
   akurasi_gps: gpsData.acc,
 
   // 🔥 pakai hasil lokasi terdekat
-  lokasi_nama: hasil.lokasi?.nama || null,
+  lokasi_nama: hasil.lokasi?.nama || lokasiKerja?.nama || 'Unknown',
   lokasi_id: hasil.lokasi?.id || null,
 
-  jarak_kantor: hasil.jarak,
-  di_area_kantor: hasil.dalamRadius,
+  jarak_kantor: hasil.jarak || jarak,
+  di_area_kantor: hasil.dalamRadius ?? diKantor,
 
   metode: 'mobile',
   telat_menit: hasilEval?.telat || 0,
@@ -1073,7 +1105,7 @@ document.getElementById('input-id').addEventListener('change', async (e) => {
 });
 
 let lokasiKerja = null;
-
+let allLokasi = [];
 async function loadLokasiByKaryawan(idKaryawan) {
   const { data, error } = await db
     .from('assign_lokasi')
@@ -1113,6 +1145,18 @@ function updateClock(){
 
 setInterval(updateClock, 1000);
 updateClock();
+
+async function loadAllLokasi() {
+  const { data, error } = await db.from('lokasi').select('*');
+
+  if (error) {
+    console.error('Gagal load lokasi', error);
+    return;
+  }
+
+  allLokasi = data;
+  console.log('Lokasi loaded:', allLokasi); // debug
+}
   
 </script>
 </body>
