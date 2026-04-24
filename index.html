@@ -943,6 +943,13 @@ const jarak = Math.round(
   )
 );
 
+// 🔥 cari lokasi terdekat dari semua lokasi
+const hasil = getLokasiTerdekat(
+  gpsData.lat,
+  gpsData.lng,
+  allLokasi // nanti kita bahas ini
+);
+
 // const diKantor = jarak <= lokasiKerja.radius;
 let diKantor = jarak <= lokasiKerja.radius;
 if (!diKantor) {
@@ -959,23 +966,29 @@ if (!diKantor) {
   // Simpan ke Supabase
  try {
   const { error } = await db.from('absensi').insert([{
-    nama,
-    id_karyawan: idKaryawan,
-    tipe: tipeAbsen,
-    jam,
-    tanggal,
-    timestamp: jamFull,
-    latitude: gpsData.lat,
-    longitude: gpsData.lng,
-    akurasi_gps: gpsData.acc,
-    jarak_kantor: jarak,
-    di_area_kantor: diKantor,
-    foto_url: null, // penting kalau kolom ada
-    metode: 'mobile',
-    telat_menit: hasilEval?.telat || 0,
-    lembur_menit: hasilEval?.lembur || 0,
-    is_libur: hasilEval?.is_libur || false,
-    }]);
+  nama,
+  id_karyawan: idKaryawan,
+  tipe: tipeAbsen,
+  jam,
+  tanggal,
+  timestamp: jamFull,
+
+  latitude: gpsData.lat,
+  longitude: gpsData.lng,
+  akurasi_gps: gpsData.acc,
+
+  // 🔥 pakai hasil lokasi terdekat
+  lokasi_nama: hasil.lokasi?.nama || null,
+  lokasi_id: hasil.lokasi?.id || null,
+
+  jarak_kantor: hasil.jarak,
+  di_area_kantor: hasil.dalamRadius,
+
+  metode: 'mobile',
+  telat_menit: hasilEval?.telat || 0,
+  lembur_menit: hasilEval?.lembur || 0,
+  is_libur: hasilEval?.is_libur || false,
+}]);
 
     if (error) {
     if (error.message.includes('duplicate key')) {
