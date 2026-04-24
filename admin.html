@@ -600,6 +600,14 @@ async function saveAssignShift() {
   alert('✅ Shift berhasil di-assign');
 }
 
+function buildLokasiCell(r) {
+  const nama  = r.lokasi_nama || '—';
+  const jarak = r.jarak_kantor != null ? ` (${r.jarak_kantor}m)` : '';
+  if (r.di_area_kantor === true)  return `<span class="badge badge-ok"  title="${esc(nama)}${jarak}">✅ ${esc(nama)}</span>`;
+  if (r.di_area_kantor === false) return `<span class="badge badge-out" title="${esc(nama)}${jarak}">⚠️ ${esc(nama)}</span>`;
+  return esc(nama);
+}
+
 function buildTable(rows) {
   if (!rows.length) return `<table><tr class="empty-row"><td colspan="8">Belum ada data</td></tr></table>`;
   return `<table><thead><tr><th>Foto</th><th>Nama</th><th>ID</th><th>Tipe</th><th>Jam</th><th>Tanggal</th><th>Lokasi</th><th>Jarak</th></tr></thead><tbody>
@@ -609,7 +617,7 @@ function buildTable(rows) {
       <td style="color:var(--muted)">${esc(r.id_karyawan)}</td>
       <td><span class="badge badge-${r.tipe}">${r.tipe==='masuk'?'🟢 Masuk':'🔴 Pulang'}</span></td>
       <td>${r.jam||'—'}</td><td>${r.tanggal||'—'}</td>
-      <td>${r.di_area_kantor===true?'<span class="badge badge-ok">✅ Kantor</span>':r.di_area_kantor===false?'<span class="badge badge-out">⚠️ Luar</span>':'—'}</td>
+      <td>${buildLokasiCell(r)}</td>
       <td>${r.jarak_kantor!=null?r.jarak_kantor+'m':'—'}</td>
     </tr>`).join('')}</tbody></table>`;
 }
@@ -660,7 +668,7 @@ function exportExcel(mode) {
   const rows=bulan?allData.filter(r=>r.tanggal?.startsWith(bulan)):allData;
   const wb=XLSX.utils.book_new();
   if(mode==='semua'){
-    const ws=XLSX.utils.aoa_to_sheet([['Tanggal','Nama','ID Karyawan','Tipe','Jam','GPS Lat','GPS Lng','Jarak (m)','Di Area Kantor','Link Foto'],...rows.map(r=>[r.tanggal,r.nama,r.id_karyawan,r.tipe,r.jam,r.latitude,r.longitude,r.jarak_kantor,r.di_area_kantor?'Ya':'Tidak',r.foto_url||''])]);
+    const ws=XLSX.utils.aoa_to_sheet([['Tanggal','Nama','ID Karyawan','Tipe','Jam','Lokasi','GPS Lat','GPS Lng','Jarak (m)','Di Area Kantor','Link Foto'],...rows.map(r=>[r.tanggal,r.nama,r.id_karyawan,r.tipe,r.jam,r.lokasi_nama||'—',r.latitude,r.longitude,r.jarak_kantor,r.di_area_kantor?'Ya':'Tidak',r.foto_url||''])]);
     XLSX.utils.book_append_sheet(wb,ws,'Data Absensi');
     XLSX.writeFile(wb,`absensi-${bulan||'semua'}.xlsx`);
   } else {
