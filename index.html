@@ -960,16 +960,6 @@ if (gpsData.acc > 100) {
   toast('Akurasi GPS terlalu rendah, coba di luar ruangan', 'warn');
 }
 
-// Hitung jarak
-const jarak = Math.round(
-  hitungJarak(
-    gpsData.lat,
-    gpsData.lng,
-    lokasiKerja.lat,
-    lokasiKerja.lng
-  )
-); 
-
 if (!allLokasi || allLokasi.length === 0) {
   toast('Data lokasi belum siap, tunggu sebentar...', 'warn');
   return;
