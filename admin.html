@@ -1358,8 +1358,7 @@ function exportCutiExcel() {
   const rows = allCutiPengajuan;
   const wb = XLSX.utils.book_new();
   const ws = XLSX.utils.aoa_to_sheet([
-    ['Nama','ID Karyawan','Jenis Cuti','Tgl Dari','Tgl Sampai','Durasi (Hari)','Status','Keterangan','Catatan HR','Diajukan','Diproses Oleh'],
-    ...rows.map(r=>[r.nama,r.id_karyawan,r.jenis_cuti,r.tanggal_dari,r.tanggal_sampai,r.durasi_hari,r.status,r.keterangan||'',r.catatan_hr||'',r.created_at?new Date(r.created_at).toLocaleString('id-ID'):'',r.approved_by||''])
+    ['Nama','ID Karyawan','Jenis Cuti','Tgl Dari','Tgl Sampai','Durasi (Hari)','Status','Keterangan','Catatan HR','Diajukan','Diproses Oleh'],...rows.map(r=>[r.nama,r.id_karyawan,r.jenis_cuti,r.tanggal_dari,r.tanggal_sampai,r.durasi_hari,r.status,r.keterangan||'',r.catatan_hr||'',r.created_at?new Date(r.created_at).toLocaleString('id-ID'):'',r.approved_by||''])
   ]);
   XLSX.utils.book_append_sheet(wb, ws, 'Pengajuan Cuti');
   XLSX.writeFile(wb, `cuti-pengajuan-${new Date().toISOString().split('T')[0]}.xlsx`);
