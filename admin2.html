@@ -167,7 +167,6 @@
 .overlay.show{
   display:block;
 }
-}
 </style>
 </head>
 <body>
@@ -1588,6 +1587,7 @@ async function saveBulkKuota() {
   await loadCutiKuota();
   closeModal('modal-bulk-kuota');
   alert(`✅ Kuota ${kuota_hari} hari berhasil diset untuk ${baru.length} karyawan di tahun ${tahun}!`);
+}
 // =============================================
 // POLA HARI KERJA
 // =============================================
@@ -1767,5 +1767,6 @@ async function hapusTipeCuti(id) {
   await loadTipeCuti();
 }
 </script>
+<div class="overlay" onclick="toggleSidebar()"></div>
 </body>
 </html>
