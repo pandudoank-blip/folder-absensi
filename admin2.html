@@ -1,0 +1,1771 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard – AbsensiKu</title>
+<script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+  :root {
+    --bg:#f7f6f3;--white:#fff;--border:#e8e4dc;--text:#1a1a18;--muted:#888880;
+    --accent:#2563eb;--accent-light:#eff6ff;--success:#16a34a;--success-bg:#f0fdf4;
+    --danger:#dc2626;--danger-bg:#fef2f2;--warn:#d97706;--warn-bg:#fffbeb;
+    --shadow:0 1px 3px rgba(0,0,0,0.08);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+  .layout{display:flex;min-height:100vh;}
+  .sidebar{width:220px;background:var(--white);border-right:1px solid var(--border);padding:24px 0;flex-shrink:0;position:sticky;top:0;height:100vh;overflow-y:auto;}
+  .sidebar-logo{padding:0 20px 24px;font-size:17px;font-weight:700;color:var(--accent);border-bottom:1px solid var(--border);margin-bottom:16px;}
+  .sidebar-logo span{color:var(--text);}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:10px 20px;font-size:14px;font-weight:500;color:var(--muted);cursor:pointer;border:none;background:none;width:100%;text-align:left;transition:all .15s;}
+  .nav-item:hover{color:var(--text);background:var(--bg);}
+  .nav-item.active{color:var(--accent);background:var(--accent-light);font-weight:600;}
+  .nav-section{padding:14px 20px 6px;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;}
+  .main{flex:1;padding:28px;overflow-x:auto;}
+  .page{display:none;} .page.active{display:block;}
+  .page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;}
+  .page-title{font-size:22px;font-weight:700;letter-spacing:-.3px;}
+  .page-sub{font-size:13px;color:var(--muted);margin-top:3px;}
+  .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-bottom:24px;}
+  .stat{background:var(--white);border:1px solid var(--border);border-radius:14px;padding:18px;box-shadow:var(--shadow);}
+  .stat-label{font-size:12px;color:var(--muted);font-weight:500;text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px;}
+  .stat-num{font-size:32px;font-weight:800;line-height:1;letter-spacing:-1px;}
+  .stat-num.blue{color:var(--accent);} .stat-num.green{color:var(--success);} .stat-num.amber{color:var(--warn);} .stat-num.red{color:var(--danger);}
+  .stat-sub{font-size:12px;color:var(--muted);margin-top:5px;}
+  .table-card{background:var(--white);border:1px solid var(--border);border-radius:16px;overflow:hidden;box-shadow:var(--shadow);}
+  .table-toolbar{padding:16px 18px;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+  .toolbar-title{font-size:15px;font-weight:600;margin-right:4px;}
+  .input-filter{padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;color:var(--text);background:var(--bg);outline:none;transition:border-color .15s;}
+  .input-filter:focus{border-color:var(--accent);}
+  .btn{padding:8px 16px;border-radius:8px;border:none;font-size:13px;font-weight:600;cursor:pointer;transition:opacity .15s;white-space:nowrap;}
+  .btn:hover{opacity:.85;}
+  .btn-primary{background:var(--accent);color:white;} .btn-outline{background:white;border:1.5px solid var(--border);color:var(--text);}
+  .btn-success{background:var(--success);color:white;} .btn-danger{background:var(--danger);color:white;}
+  .btn-sm{padding:5px 11px;font-size:12px;border-radius:6px;} .btn-group{display:flex;gap:8px;margin-left:auto;}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  thead{background:var(--bg);}
+  th{padding:11px 16px;text-align:left;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid var(--border);white-space:nowrap;}
+  td{padding:13px 16px;border-bottom:1px solid #f0ede8;vertical-align:middle;}
+  tr:last-child td{border-bottom:none;} tr:hover td{background:#fafaf8;}
+  .empty-row td{text-align:center;color:var(--muted);padding:40px;font-size:14px;}
+  .badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:6px;font-size:12px;font-weight:600;white-space:nowrap;}
+  .badge-masuk{background:var(--success-bg);color:var(--success);} .badge-pulang{background:var(--danger-bg);color:var(--danger);}
+  .badge-ok{background:var(--success-bg);color:var(--success);} .badge-out{background:var(--warn-bg);color:var(--warn);}
+  .badge-aktif{background:var(--success-bg);color:var(--success);} .badge-nonaktif{background:var(--danger-bg);color:var(--danger);}
+  .foto-thumb{width:36px;height:36px;border-radius:6px;object-fit:cover;cursor:pointer;border:1px solid var(--border);}
+  .no-foto{width:36px;height:36px;border-radius:6px;background:var(--bg);display:inline-flex;align-items:center;justify-content:center;font-size:18px;border:1px solid var(--border);}
+  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:100;align-items:center;justify-content:center;padding:20px;}
+  .modal-overlay.show{display:flex;}
+  .modal-foto{max-width:360px;width:90vw;}
+  .modal-foto img{width:100%;border-radius:16px;display:block;}
+  .modal-foto p{text-align:center;color:white;margin-top:12px;font-size:14px;}
+  .modal-box{background:var(--white);border-radius:20px;padding:28px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.2);}
+  .modal-title{font-size:18px;font-weight:700;margin-bottom:20px;}
+  .form-field{margin-bottom:14px;}
+  .form-label{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:6px;}
+  .form-input{width:100%;padding:11px 13px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;color:var(--text);background:var(--white);outline:none;transition:border-color .15s;}
+  .form-input:focus{border-color:var(--accent);} .form-input::placeholder{color:#c8c6c0;}
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .modal-actions{display:flex;gap:10px;margin-top:20px;justify-content:flex-end;}
+  .login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--bg);padding:20px;}
+  .login-card{background:var(--white);border:1px solid var(--border);border-radius:20px;padding:36px 32px;width:100%;max-width:380px;box-shadow:0 8px 30px rgba(0,0,0,.08);}
+  .login-card h1{font-size:22px;font-weight:700;margin-bottom:6px;}
+  .login-card p{color:var(--muted);font-size:14px;margin-bottom:24px;}
+  .login-field{margin-bottom:14px;}
+  .login-label{font-size:13px;font-weight:500;color:var(--muted);display:block;margin-bottom:6px;}
+  .login-input{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;outline:none;}
+  .btn-login{width:100%;padding:14px;border-radius:12px;border:none;background:var(--accent);color:white;font-size:15px;font-weight:700;cursor:pointer;margin-top:8px;}
+  .login-note{font-size:12px;color:var(--muted);margin-top:16px;text-align:center;line-height:1.6;}
+  .loading-bar{text-align:center;padding:40px;color:var(--muted);font-size:14px;}
+  .rekap-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;}
+  .rekap-card{background:var(--white);border:1px solid var(--border);border-radius:14px;padding:16px;box-shadow:var(--shadow);}
+  .rekap-nama{font-size:14px;font-weight:600;margin-bottom:4px;} .rekap-id{font-size:12px;color:var(--muted);margin-bottom:12px;}
+  .rekap-stats{display:flex;gap:8px;}
+  .rekap-stat{flex:1;text-align:center;background:var(--bg);border-radius:8px;padding:8px 4px;}
+  .rekap-stat .num{font-size:18px;font-weight:700;} .rekap-stat .lbl{font-size:10px;color:var(--muted);margin-top:2px;}
+  .toggle{position:relative;display:inline-block;width:38px;height:22px;}
+  .toggle input{opacity:0;width:0;height:0;}
+  .toggle-slider{position:absolute;cursor:pointer;inset:0;background:#ccc;border-radius:22px;transition:.2s;}
+  .toggle-slider:before{content:'';position:absolute;height:16px;width:16px;left:3px;bottom:3px;background:white;border-radius:50%;transition:.2s;}
+  .toggle input:checked+.toggle-slider{background:var(--success);}
+  .toggle input:checked+.toggle-slider:before{transform:translateX(16px);}
+  .loc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;}
+  .loc-card{background:var(--white);border:1px solid var(--border);border-radius:14px;padding:18px;box-shadow:var(--shadow);}
+  .loc-name{font-size:15px;font-weight:700;margin-bottom:4px;} .loc-sub{font-size:12px;color:var(--muted);margin-bottom:12px;}
+  .loc-coords{font-size:11px;color:var(--muted);margin-bottom:12px;font-family:monospace;background:var(--bg);padding:6px 10px;border-radius:6px;}
+  .loc-actions{display:flex;gap:8px;}
+  .loc-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:3px 8px;border-radius:6px;margin-bottom:10px;background:var(--accent-light);color:var(--accent);}
+  .assign-row{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #f0ede8;}
+  .assign-row:last-child{border-bottom:none;}
+  .assign-info{flex:1;} .assign-name{font-size:14px;font-weight:600;} .assign-id{font-size:12px;color:var(--muted);} .assign-loc{font-size:12px;color:var(--accent);margin-top:2px;}
+  .info-box{background:var(--accent-light);border:1px solid #bfdbfe;border-radius:10px;padding:12px 16px;font-size:13px;color:#1e40af;margin-bottom:16px;}
+  .badge-pending{background:#fef9c3;color:#854d0e;}
+  .badge-disetujui{background:var(--success-bg);color:var(--success);}
+  .badge-ditolak{background:var(--danger-bg);color:var(--danger);}
+  .badge-dibatalkan{background:#f3f4f6;color:#6b7280;}
+  .kuota-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;}
+  .kuota-card{background:var(--white);border:1px solid var(--border);border-radius:14px;padding:18px;box-shadow:var(--shadow);}
+  .kuota-nama{font-size:14px;font-weight:700;margin-bottom:2px;}
+  .kuota-id{font-size:12px;color:var(--muted);margin-bottom:12px;}
+  .kuota-bar-wrap{height:8px;background:var(--bg);border-radius:8px;overflow:hidden;margin:8px 0;}
+  .kuota-bar{height:100%;border-radius:8px;background:var(--accent);transition:width .4s;}
+  .kuota-stats{display:flex;gap:8px;margin-top:10px;}
+  .kuota-stat{flex:1;text-align:center;background:var(--bg);border-radius:8px;padding:8px 4px;}
+  .kuota-stat .num{font-size:18px;font-weight:700;} .kuota-stat .lbl{font-size:10px;color:var(--muted);margin-top:2px;}
+  /* Pola hari kerja */
+  .hari-toggle-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;}
+  .hari-chip{padding:6px 10px;border-radius:8px;border:1.5px solid var(--border);font-size:12px;font-weight:600;cursor:pointer;color:var(--muted);background:var(--white);transition:all .15s;user-select:none;}
+  .hari-chip.on{background:var(--accent-light);border-color:var(--accent);color:var(--accent);}
+  .hari-chip.off{background:#fef2f2;border-color:#fca5a5;color:#dc2626;text-decoration:line-through;}
+  .pola-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:3px 8px;border-radius:6px;background:var(--accent-light);color:var(--accent);}
+  /* Tipe Cuti */
+  .tipe-cuti-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;}
+  .tipe-cuti-card{background:var(--white);border:1px solid var(--border);border-radius:14px;padding:18px;box-shadow:var(--shadow);}
+  .tipe-cuti-card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
+  .tipe-cuti-nama{font-size:14px;font-weight:700;}
+  .tipe-cuti-keterangan{font-size:12px;color:var(--muted);margin-bottom:10px;line-height:1.5;}
+  .tipe-cuti-meta{display:flex;gap:8px;flex-wrap:wrap;}
+  .meta-chip{font-size:11px;font-weight:500;padding:3px 8px;border-radius:6px;background:var(--bg);color:var(--muted);border:1px solid var(--border);}
+  .meta-chip.kuota{background:var(--accent-light);color:var(--accent);}
+  .meta-chip.hitung{background:#f0fdf4;color:var(--success);}
+  .meta-chip.tidak-hitung{background:#fef2f2;color:var(--danger);}
+
+  .sidebar{
+    position:fixed;
+    left:-250px;
+    top:0;
+    height:100%;
+    width:220px;
+    z-index:200;
+    transition:0.3s;
+  }
+
+  .sidebar.show{
+    left:0;
+  }
+
+  .main{
+    padding:16px;
+  }
+
+  .form-row{
+    grid-template-columns:1fr;
+  }
+.overlay{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background:rgba(0,0,0,0.4);
+  z-index:150;
+  display:none;
+}
+
+.overlay.show{
+  display:block;
+}
+}
+</style>
+</head>
+<body>
+
+<div id="login-page" class="login-wrap">
+  <div class="login-card">
+    <h1>📋 Admin AbsensiKu</h1>
+    <p>Masuk untuk mengelola data absensi karyawan</p>
+    <div class="login-field"><label class="login-label">Username Admin</label><input class="login-input" type="email" id="login-email" placeholder="••••••••"></div>
+    <div class="login-field"><label class="login-label">Password</label><input class="login-input" type="password" id="login-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <button class="btn-login" onclick="doLogin()">Masuk</button>
+    <div class="login-note">Default: admin@test.com / Admin123</div>
+  </div>
+</div>
+
+<div id="dashboard-page" style="display:none;">
+  <div class="layout">
+    <div class="sidebar">
+      <div class="sidebar-logo">📋 Absensi<span>Ku</span></div>
+      <div class="nav-section">Laporan</div>
+      <button class="nav-item active" onclick="showPage('overview',this)">📊 Overview</button>
+      <button class="nav-item" onclick="showPage('data',this)">📋 Data Absensi</button>
+      <button class="nav-item" onclick="showPage('rekap',this)">👥 Rekap Karyawan</button>
+      <button class="nav-item" onclick="showPage('export',this)">📥 Export Payroll</button>
+      <div class="nav-section">Manajemen</div>
+      <button class="nav-item" onclick="showPage('admin',this)">👤 Admin</button>
+      <button class="nav-item" onclick="showPage('karyawan',this)">🧑‍💼 Data Karyawan</button>
+      <button class="nav-item" onclick="showPage('lokasi',this)">📍 Lokasi & Project</button>
+      <button class="nav-item" onclick="showPage('assign',this)">🔗 Assign Karyawan</button>
+      <button class="nav-item" onclick="showPage('shift',this)">⏰ Shift</button>
+      <button class="nav-item" onclick="showPage('assign-shift',this)">📅 Assign Shift</button>
+      <div class="nav-section">Cuti</div>
+      <button class="nav-item" onclick="showPage('cuti-pengajuan',this)">🏖️ Pengajuan Cuti</button>
+      <button class="nav-item" onclick="showPage('cuti-kuota',this)">⚙️ Kuota Cuti</button>
+      <button class="nav-item" onclick="showPage('tipe-cuti',this)">🏷️ Tipe Cuti</button>
+      <div style="padding:16px 20px;margin-top:8px;border-top:1px solid var(--border);">
+        <button class="btn btn-outline" style="width:100%;font-size:12px;" onclick="doLogout()">🚪 Keluar</button>
+      </div>
+    </div>
+
+    <div class="main">
+      <button id="btn-menu" onclick="toggleSidebar()" 
+      style="margin-bottom:10px;padding:8px 12px;border:none;background:#2563eb;color:white;border-radius:8px;">
+      ☰ Menu
+      </button>
+      <!-- Overview -->
+      <div class="page active" id="page-overview">
+        <div class="page-header">
+          <div><div class="page-title">Overview</div><div class="page-sub" id="ov-tanggal">Memuat...</div></div>
+          <button class="btn btn-primary" onclick="loadData()">🔄 Refresh</button>
+        </div>
+        <div class="stats-grid">
+          <div class="stat"><div class="stat-label">Total Hari Ini</div><div class="stat-num blue" id="s-total">—</div><div class="stat-sub">Semua absensi</div></div>
+          <div class="stat"><div class="stat-label">Masuk</div><div class="stat-num green" id="s-masuk">—</div><div class="stat-sub">Check-in hari ini</div></div>
+          <div class="stat"><div class="stat-label">Pulang</div><div class="stat-num red" id="s-pulang">—</div><div class="stat-sub">Check-out hari ini</div></div>
+          <div class="stat"><div class="stat-label">Karyawan Aktif</div><div class="stat-num amber" id="s-aktif">—</div><div class="stat-sub">ID terdaftar</div></div>
+        </div>
+        <div class="table-card">
+          <div class="table-toolbar"><span class="toolbar-title">Absensi Hari Ini</span></div>
+          <div id="tbl-hari-ini"><div class="loading-bar">⏳ Memuat data...</div></div>
+        </div>
+      </div>
+
+      <div class="page" id="page-assign-shift">
+  <div class="page-header">
+    <div>
+      <div class="page-title">📅 Assign Shift Karyawan</div>
+      <div class="page-sub">Set shift per tanggal</div>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <div class="table-toolbar">
+      <input type="date" id="assign-shift-tgl">
+      <select id="assign-shift-karyawan"></select>
+      <select id="assign-shift-shift"></select>
+      <button class="btn btn-primary" onclick="saveAssignShift()">Simpan</button>
+    </div>
+
+    <div id="tbl-assign-shift"></div>
+  </div>
+</div>
+
+      <!-- Data Absensi -->
+      <div class="page" id="page-data">
+        <div class="page-header"><div><div class="page-title">Data Absensi</div><div class="page-sub">Semua data masuk dan pulang</div></div></div>
+        <div class="table-card">
+          <div class="table-toolbar">
+            <span class="toolbar-title">Filter</span>
+            <input class="input-filter" type="date" id="filter-tgl" onchange="filterData()">
+            <select class="input-filter" id="filter-tipe" onchange="filterData()">
+              <option value="">Semua tipe</option><option value="masuk">Masuk</option><option value="pulang">Pulang</option>
+            </select>
+            <input class="input-filter" type="text" id="filter-nama" placeholder="🔍 Cari nama..." oninput="filterData()" style="min-width:160px;">
+            <div class="btn-group"><button class="btn btn-outline" onclick="resetFilter()">Reset</button></div>
+          </div>
+          <div id="tbl-semua"><div class="loading-bar">⏳ Memuat data...</div></div>
+        </div>
+      </div>
+
+      <!-- Rekap -->
+      <div class="page" id="page-rekap">
+        <div class="page-header">
+          <div><div class="page-title">Rekap Karyawan</div><div class="page-sub">Kehadiran per karyawan</div></div>
+          <select class="input-filter" id="filter-bulan-rekap" onchange="renderRekap()"></select>
+        </div>
+        <div id="rekap-container"><div class="loading-bar">⏳ Memuat...</div></div>
+      </div>
+
+      <!-- Export -->
+      <div class="page" id="page-export">
+        <div class="page-header"><div><div class="page-title">Export Payroll</div><div class="page-sub">Download Excel (.xlsx)</div></div></div>
+        <div style="display:grid;gap:14px;max-width:560px;">
+          <div class="table-card" style="padding:20px;">
+            <div style="font-weight:600;font-size:15px;margin-bottom:6px;">📥 Export Semua Data</div>
+            <div style="color:var(--muted);font-size:13px;margin-bottom:16px;">Download seluruh data absensi.</div>
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+              <select class="input-filter" id="exp-bulan"></select>
+              <button class="btn btn-success" onclick="exportExcel('semua')">⬇ Download Excel</button>
+            </div>
+          </div>
+          <div class="table-card" style="padding:20px;">
+            <div style="font-weight:600;font-size:15px;margin-bottom:6px;">📊 Export Rekap Payroll</div>
+            <div style="color:var(--muted);font-size:13px;margin-bottom:16px;">Rekap per karyawan: nama, total hadir.</div>
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+              <select class="input-filter" id="exp-bulan-rekap"></select>
+              <button class="btn btn-success" onclick="exportExcel('rekap')">⬇ Download Rekap</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ CUTI PENGAJUAN ══ -->
+      <div class="page" id="page-cuti-pengajuan">
+        <div class="page-header">
+          <div><div class="page-title">🏖️ Pengajuan Cuti</div><div class="page-sub">Kelola semua pengajuan cuti karyawan</div></div>
+          <button class="btn btn-primary" onclick="loadCutiPengajuan()">🔄 Refresh</button>
+        </div>
+        <div class="stats-grid" id="cuti-stats-grid">
+          <div class="stat"><div class="stat-label">Menunggu Approval</div><div class="stat-num amber" id="cs-pending">—</div><div class="stat-sub">Perlu tindakan</div></div>
+          <div class="stat"><div class="stat-label">Disetujui Bulan Ini</div><div class="stat-num green" id="cs-disetujui">—</div><div class="stat-sub">Sudah diproses</div></div>
+          <div class="stat"><div class="stat-label">Ditolak Bulan Ini</div><div class="stat-num red" id="cs-ditolak">—</div><div class="stat-sub">Tidak disetujui</div></div>
+          <div class="stat"><div class="stat-label">Total Hari Cuti</div><div class="stat-num blue" id="cs-hari">—</div><div class="stat-sub">Disetujui tahun ini</div></div>
+        </div>
+        <div class="table-card">
+          <div class="table-toolbar">
+            <span class="toolbar-title">Filter</span>
+            <select class="input-filter" id="cuti-filter-status" onchange="filterCuti()">
+              <option value="">Semua status</option>
+              <option value="pending">⏳ Pending</option>
+              <option value="disetujui">✅ Disetujui</option>
+              <option value="ditolak">❌ Ditolak</option>
+              <option value="dibatalkan">🚫 Dibatalkan</option>
+            </select>
+            <select class="input-filter" id="cuti-filter-jenis" onchange="filterCuti()">
+              <option value="">Semua jenis</option>
+              <option value="Tahunan">Tahunan</option>
+              <option value="Sakit">Sakit</option>
+              <option value="Keperluan Penting">Keperluan Penting</option>
+              <option value="Menikah">Menikah</option>
+              <option value="Melahirkan">Melahirkan</option>
+              <option value="Lainnya">Lainnya</option>
+            </select>
+            <input class="input-filter" type="text" id="cuti-filter-nama" placeholder="🔍 Cari nama..." oninput="filterCuti()" style="min-width:160px;">
+            <div class="btn-group">
+              <button class="btn btn-outline" onclick="resetCutiFilter()">Reset</button>
+              <button class="btn btn-success" onclick="exportCutiExcel()">📥 Export Excel</button>
+            </div>
+          </div>
+          <div id="tbl-cuti"><div class="loading-bar">⏳ Memuat data...</div></div>
+        </div>
+      </div>
+
+      <!-- ══ CUTI KUOTA ══ -->
+      <div class="page" id="page-cuti-kuota">
+        <div class="page-header">
+          <div><div class="page-title">⚙️ Kuota Cuti Karyawan</div><div class="page-sub">Set jumlah hari cuti tahunan per karyawan</div></div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <select class="input-filter" id="kuota-filter-tahun" onchange="renderKuota()"></select>
+            <button class="btn btn-primary" onclick="openModalBulkKuota()">⚡ Set Massal</button>
+          </div>
+        </div>
+        <div class="info-box">💡 Default kuota adalah <strong>12 hari/tahun</strong>. Klik ✏️ Edit pada kartu karyawan untuk mengubah kuota individual. 
+          Karyawan yang belum diset akan otomatis menggunakan kuota default.</div>
+        <div id="kuota-container"><div class="loading-bar">⏳ Memuat...</div></div>
+      </div> 
+        
+      <div class="page" id="page-admin">
+        <div class="page-header">
+          <div>
+            <div class="page-title">👤 Manage Admin</div>
+            <div class="page-sub">Tambah akun admin</div>
+          </div>
+        </div>
+
+        <div class="table-card">
+          <div class="table-toolbar">
+            <input type="text" id="admin-username" placeholder="Username">
+            <input type="password" id="admin-password" placeholder="Password">
+            <button class="btn btn-primary" onclick="saveAdmin()">Tambah</button>
+          </div>
+        </div>
+
+        <div id="tbl-admin">
+          <div class="loading-bar">⏳ Memuat admin...</div>
+        </div>
+      </div>
+      
+      <!-- Karyawan -->
+      <div class="page" id="page-karyawan">
+        <div class="page-header">
+          <div><div class="page-title">🧑‍💼 Data Karyawan</div><div class="page-sub">Kelola daftar karyawan</div></div>
+          <button class="btn btn-primary" onclick="openModalKaryawan()">+ Tambah Karyawan</button>
+        </div>
+        <div class="info-box">💡 Karyawan <strong>Nonaktif</strong> tidak bisa melakukan absensi.</div>
+        <div class="table-card">
+          <div class="table-toolbar">
+            <span class="toolbar-title">Daftar Karyawan</span>
+            <input class="input-filter" type="text" id="filter-karyawan" placeholder="🔍 Cari..." oninput="renderKaryawan()" style="min-width:180px;">
+            <select class="input-filter" id="filter-status-karyawan" onchange="renderKaryawan()">
+              <option value="">Semua Status</option><option value="aktif">Aktif</option><option value="nonaktif">Nonaktif</option>
+            </select>
+          </div>
+          <div id="tbl-karyawan"><div class="loading-bar">⏳ Memuat...</div></div>
+        </div>
+      </div>
+
+      <!-- Lokasi -->
+      <div class="page" id="page-lokasi">
+        <div class="page-header">
+          <div><div class="page-title">📍 Lokasi & Project</div><div class="page-sub">Kelola lokasi kerja</div></div>
+          <button class="btn btn-primary" onclick="openModalLokasi()">+ Tambah Lokasi</button>
+        </div>
+        <div class="info-box">💡 Setiap lokasi punya koordinat GPS dan radius absen sendiri.</div>
+        <div id="loc-container"><div class="loading-bar">⏳ Memuat...</div></div>
+      </div>
+
+      <!-- Assign -->
+      <div class="page" id="page-assign">
+        <div class="page-header"><div><div class="page-title">🔗 Assign Karyawan ke Lokasi</div><div class="page-sub">Hubungkan karyawan dengan lokasi kerja</div></div></div>
+        <div class="info-box">💡 Karyawan bisa dipindah ke lokasi lain kapan saja.</div>
+        <div class="table-card">
+          <div class="table-toolbar">
+            <span class="toolbar-title">Daftar Assign</span>
+            <select class="input-filter" id="filter-assign-lokasi" onchange="renderAssign()"><option value="">Semua Lokasi</option></select>
+          </div>
+          <div id="tbl-assign"><div class="loading-bar">⏳ Memuat...</div></div>
+        </div>
+      </div>
+
+      <!-- ✅ FIX: page-shift di dalam .main -->
+      <div class="page" id="page-shift">
+        <div class="page-header">
+          <div><div class="page-title">⏰ Shift Kerja</div><div class="page-sub">Setting jam kerja per shift</div></div>
+          <button class="btn btn-primary" onclick="openModalShift()">+ Tambah Shift</button>
+        </div>
+        <div class="table-card">
+          <div class="table-toolbar"><span class="toolbar-title">Data Shift</span></div>
+          <div id="tbl-shift"><div class="loading-bar">⏳ Memuat...</div></div>
+        </div>
+      </div>
+
+      <!-- ══ TIPE CUTI ══ -->
+      <div class="page" id="page-tipe-cuti">
+        <div class="page-header">
+          <div><div class="page-title">🏷️ Tipe Cuti</div><div class="page-sub">Kelola jenis cuti yang tersedia untuk karyawan</div></div>
+          <button class="btn btn-primary" onclick="openModalTipeCuti()">+ Tambah Tipe Cuti</button>
+        </div>
+        <div class="info-box">💡 Tipe cuti yang aktif akan tampil sebagai pilihan saat karyawan mengajukan cuti. Anda bisa mengatur apakah tipe cuti tersebut mengurangi kuota tahunan atau tidak.</div>
+        <div id="tipe-cuti-container"><div class="loading-bar">⏳ Memuat...</div></div>
+      </div>
+
+    </div><!-- end .main -->
+  </div><!-- end .layout -->
+</div><!-- end dashboard-page -->
+<!-- Modal Tipe Cuti -->
+<div class="modal-overlay" id="modal-tipe-cuti">
+  <div class="modal-box">
+    <div class="modal-title" id="modal-tipe-cuti-title">Tambah Tipe Cuti</div>
+    <input type="hidden" id="tipe-cuti-edit-id">
+    <div class="form-field">
+      <label class="form-label">Nama Tipe Cuti *</label>
+      <input class="form-input" type="text" id="tipe-cuti-nama" placeholder="cth: Tahunan, Sakit, Melahirkan...">
+    </div>
+    <div class="form-row">
+      <div class="form-field">
+        <label class="form-label">Emoji / Ikon</label>
+        <input class="form-input" type="text" id="tipe-cuti-emoji" placeholder="🏖️" maxlength="4">
+      </div>
+      <div class="form-field">
+        <label class="form-label">Maks. Hari per Pengajuan</label>
+        <input class="form-input" type="number" id="tipe-cuti-maks-hari" placeholder="0 = tidak dibatasi" min="0" max="365">
+      </div>
+    </div>
+    <div class="form-field">
+      <label class="form-label">Deskripsi</label>
+      <input class="form-input" type="text" id="tipe-cuti-keterangan" placeholder="Keterangan singkat (opsional)">
+    </div>
+    <div class="form-field">
+      <label class="form-label">Mengurangi Kuota Tahunan?</label>
+      <select class="form-input" id="tipe-cuti-hitung-kuota">
+        <option value="1">✅ Ya — memotong kuota cuti tahunan</option>
+        <option value="0">❌ Tidak — di luar kuota (bebas)</option>
+      </select>
+    </div>
+    <div class="form-field">
+      <label class="form-label">Memerlukan Dokumen Pendukung?</label>
+      <select class="form-input" id="tipe-cuti-butuh-dokumen">
+        <option value="0">Tidak perlu</option>
+        <option value="1">Ya (perlu upload dokumen)</option>
+      </select>
+    </div>
+    <div class="form-field">
+      <label class="form-label">Status</label>
+      <select class="form-input" id="tipe-cuti-status">
+        <option value="aktif">✅ Aktif</option>
+        <option value="nonaktif">❌ Nonaktif</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modal-tipe-cuti')">Batal</button>
+      <button class="btn btn-primary" onclick="saveTipeCuti()">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-foto" onclick="this.classList.remove('show')">
+  <div class="modal-foto"><img id="modal-foto-img" src="" alt="Foto"><p id="modal-foto-label">—</p></div>
+</div>
+
+<!-- Modal Karyawan -->
+<div class="modal-overlay" id="modal-karyawan">
+  <div class="modal-box">
+    <div class="modal-title" id="modal-karyawan-title">Tambah Karyawan</div>
+    <input type="hidden" id="kary-edit-id">
+    <div class="form-row">
+      <div class="form-field"><label class="form-label">Nama Lengkap *</label><input class="form-input" type="text" id="kary-nama" placeholder="Budi Santoso"></div>
+      <div class="form-field"><label class="form-label">ID Karyawan *</label><input class="form-input" type="text" id="kary-id" placeholder="EMP-001"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-field"><label class="form-label">Jabatan</label><input class="form-input" type="text" id="kary-jabatan" placeholder="Staff Lapangan"></div>
+      <div class="form-field"><label class="form-label">No. HP</label><input class="form-input" type="tel" id="kary-hp" placeholder="08123456789"></div>
+    </div>
+    <div class="form-field"><label class="form-label">Status</label><select class="form-input" id="kary-status"><option value="aktif">Aktif</option><option value="nonaktif">Nonaktif</option></select></div>
+    <div class="form-field">
+      <label class="form-label">Pola Hari Kerja</label>
+      <select class="form-input" id="kary-pola-kerja" onchange="onPolaKerjaChange()">
+        <option value="senin-jumat">Senin – Jumat (Sabtu & Minggu libur)</option>
+        <option value="senin-sabtu">Senin – Sabtu (Minggu libur)</option>
+        <option value="custom">Custom (pilih manual)</option>
+      </select>
+    </div>
+    <div id="kary-hari-custom" style="display:none;">
+      <label class="form-label" style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:6px;">Hari Kerja</label>
+      <div class="hari-toggle-row">
+        <span class="hari-chip on" data-hari="1" onclick="toggleHari(this)">Sen</span>
+        <span class="hari-chip on" data-hari="2" onclick="toggleHari(this)">Sel</span>
+        <span class="hari-chip on" data-hari="3" onclick="toggleHari(this)">Rab</span>
+        <span class="hari-chip on" data-hari="4" onclick="toggleHari(this)">Kam</span>
+        <span class="hari-chip on" data-hari="5" onclick="toggleHari(this)">Jum</span>
+        <span class="hari-chip off" data-hari="6" onclick="toggleHari(this)">Sab</span>
+        <span class="hari-chip off" data-hari="0" onclick="toggleHari(this)">Min</span>
+      </div>
+    </div>
+    <div class="form-field"><label class="form-label">Catatan</label><input class="form-input" type="text" id="kary-catatan" placeholder="opsional"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modal-karyawan')">Batal</button>
+      <button class="btn btn-primary" onclick="saveKaryawan()">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Lokasi -->
+<div class="modal-overlay" id="modal-lokasi">
+  <div class="modal-box">
+    <div class="modal-title" id="modal-lokasi-title">Tambah Lokasi</div>
+    <input type="hidden" id="lok-edit-id">
+    <div class="form-field"><label class="form-label">Nama Lokasi *</label><input class="form-input" type="text" id="lok-nama" placeholder="Kantor Pusat / Proyek A"></div>
+    <div class="form-field"><label class="form-label">Deskripsi / Alamat</label><input class="form-input" type="text" id="lok-alamat" placeholder="Jl. Sudirman No. 10"></div>
+    <div class="form-row">
+      <div class="form-field"><label class="form-label">Latitude *</label><input class="form-input" type="number" id="lok-lat" placeholder="-8.621840" step="0.000001"></div>
+      <div class="form-field"><label class="form-label">Longitude *</label><input class="form-input" type="number" id="lok-lng" placeholder="115.195655" step="0.000001"></div>
+    </div>
+    <div class="form-field"><label class="form-label">Radius (meter) *</label><input class="form-input" type="number" id="lok-radius" placeholder="100" min="10" max="5000"></div>
+    <div class="form-field"><label class="form-label">Status</label><select class="form-input" id="lok-status"><option value="aktif">Aktif</option><option value="selesai">Selesai</option></select></div>
+    <div style="background:var(--bg);border-radius:10px;padding:12px;font-size:12px;color:var(--muted);margin-bottom:4px;">💡 Koordinat: Google Maps → klik kanan lokasi → "What's here?"</div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modal-lokasi')">Batal</button>
+      <button class="btn btn-primary" onclick="saveLokasi()">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Assign -->
+<div class="modal-overlay" id="modal-assign">
+  <div class="modal-box">
+    <div class="modal-title">Assign Lokasi Kerja</div>
+    <input type="hidden" id="assign-kary-id">
+    <div style="background:var(--bg);border-radius:10px;padding:12px 14px;margin-bottom:16px;">
+      <div style="font-size:14px;font-weight:600;" id="assign-kary-nama">—</div>
+      <div style="font-size:12px;color:var(--muted);" id="assign-kary-id-label">—</div>
+    </div>
+    <div class="form-field"><label class="form-label">Pilih Lokasi</label><select class="form-input" id="assign-lokasi-select"><option value="">— Pilih Lokasi —</option></select></div>
+    <div class="form-field"><label class="form-label">Tanggal Mulai</label><input class="form-input" type="date" id="assign-tgl-mulai"></div>
+    <div class="form-field"><label class="form-label">Keterangan</label><input class="form-input" type="text" id="assign-ket" placeholder="opsional"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modal-assign')">Batal</button>
+      <button class="btn btn-primary" onclick="saveAssign()">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Shift -->
+<div class="modal-overlay" id="modal-shift">
+  <div class="modal-box">
+    <div class="modal-title" id="modal-shift-title">Tambah Shift</div>
+    <input type="hidden" id="shift-edit-id">
+    <div class="form-field"><label class="form-label">Nama Shift *</label><input class="form-input" type="text" id="shift-nama" placeholder="Pagi / Siang / Malam"></div>
+    <div class="form-row">
+      <div class="form-field"><label class="form-label">Jam Masuk *</label><input class="form-input" type="time" id="shift-masuk"></div>
+      <div class="form-field"><label class="form-label">Jam Pulang *</label><input class="form-input" type="time" id="shift-pulang"></div>
+    </div>
+    <div class="form-field"><label class="form-label">Toleransi Terlambat (menit)</label><input class="form-input" type="number" id="shift-toleransi" placeholder="15" min="0" max="120"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modal-shift')">Batal</button>
+      <button class="btn btn-primary" onclick="saveShift()">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = "https://szjlxhfawjopjyfacwxe.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN6amx4aGZhd2pvcGp5ZmFjd3hlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzODU1MDksImV4cCI6MjA5MTk2MTUwOX0.-x6FGoEId7d6PwGRKTHYgs92bkrSpddX15vQlhMVazc";
+const ADMIN_PASSWORD = "Admin123";
+
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+let allData=[], allKaryawan=[], allLokasi=[], allAssign=[], allShift=[];
+
+//function doLogin() {
+// const email = document.getElementById('login-email').value.trim();
+//  const pass  = document.getElementById('login-pass').value;
+//  if (!email) { alert('Masukkan email'); return; }
+//  if (pass !== ADMIN_PASSWORD) { alert('Password salah!'); return; }
+
+  // ✅ simpan session
+//  localStorage.setItem('isLogin', 'true');
+  
+//  document.getElementById('login-page').style.display = 'none';
+//  document.getElementById('dashboard-page').style.display = 'block';
+//  initDashboard();
+//}
+function doLogout() {
+  localStorage.removeItem('isLogin');
+  document.getElementById('login-page').style.display = 'flex';
+  document.getElementById('dashboard-page').style.display = 'none';
+}
+
+async function doLogin() {
+  const username = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-pass').value;
+
+  if (!username || !password) {
+    alert('Lengkapi data!');
+    return;
+  }
+
+  const { data, error } = await sb
+    .from('admin_user')
+    .select('*')
+    .eq('username', username)
+    .eq('password', password)
+    .single();
+
+  if (error || !data) {
+    // ✅ FALLBACK LOGIN (default hardcode)
+    if (username === 'admin' && password === 'Admin123') {
+    console.log('Login via fallback');
+
+    localStorage.setItem('isLogin', 'true');
+    localStorage.setItem('adminUser', username);
+
+    document.getElementById('login-page').style.display = 'none';
+    document.getElementById('dashboard-page').style.display = 'block';
+
+    initDashboard();
+    return;
+    }
+     alert('Username / Password salah!');
+  return;
+}
+  // ✅ simpan session
+  localStorage.setItem('isLogin', 'true');
+  localStorage.setItem('adminUser', username);
+
+  document.getElementById('login-page').style.display = 'none';
+  document.getElementById('dashboard-page').style.display = 'block';
+
+  initDashboard();
+}
+
+async function saveAdmin() {
+  const username = document.getElementById('admin-username').value.trim();
+  const password = document.getElementById('admin-password').value;
+
+  if (!username || !password) {
+    alert('Isi semua field!');
+    return;
+  }
+
+  const { error } = await sb.from('admin_user').insert([{
+    username,
+    password
+  }]);
+
+  if (error) {
+    alert(error.message);
+    return;
+  }
+
+  alert('✅ Admin berhasil ditambahkan');
+}
+
+async function initDashboard() {
+  document.getElementById('ov-tanggal').textContent = new Date().toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  populateBulan();
+  populateKuotaTahun();
+  await Promise.all([loadData(), loadKaryawan(), loadLokasi(), loadAssign(), loadShift()]);
+}
+
+function populateBulan() {
+  const now = new Date();
+  ['exp-bulan','exp-bulan-rekap','filter-bulan-rekap'].forEach(id => {
+    const el = document.getElementById(id); if (!el) return; el.innerHTML = '';
+    for (let i=0;i<6;i++) {
+      const d = new Date(now.getFullYear(), now.getMonth()-i, 1);
+      const val = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+      el.innerHTML += `<option value="${val}">${d.toLocaleDateString('id-ID',{month:'long',year:'numeric'})}</option>`;
+    }
+  });
+  document.getElementById('filter-tgl').value = new Date().toISOString().split('T')[0];
+}
+
+async function loadData() {
+  const {data, error} = await sb.from('absensi').select('*').order('timestamp',{ascending:false}).limit(1000);
+  if (error) { console.error('loadData:', error); return; }
+  allData = data || [];
+  renderOverview(); filterData(); renderRekap();
+}
+
+function renderOverview() {
+  const today = new Date().toISOString().split('T')[0];
+  const hari = allData.filter(r => r.tanggal === today);
+  document.getElementById('s-total').textContent  = hari.length;
+  document.getElementById('s-masuk').textContent  = hari.filter(r=>r.tipe==='masuk').length;
+  document.getElementById('s-pulang').textContent = hari.filter(r=>r.tipe==='pulang').length;
+  document.getElementById('s-aktif').textContent  = allKaryawan.filter(k=>k.status==='aktif').length;
+  document.getElementById('tbl-hari-ini').innerHTML = buildTable(hari);
+}
+
+function loadAssignShiftForm() {
+  const kSel = document.getElementById('assign-shift-karyawan');
+  const sSel = document.getElementById('assign-shift-shift');
+
+  kSel.innerHTML = '<option value="">Pilih Karyawan</option>';
+  allKaryawan.forEach(k => {
+    kSel.innerHTML += `<option value="${k.id_karyawan}">${k.nama}</option>`;
+  });
+
+  sSel.innerHTML = '<option value="">Pilih Shift</option>';
+  allShift.forEach(s => {
+    sSel.innerHTML += `<option value="${s.id}">${s.nama_shift}</option>`;
+  });
+}
+
+async function saveAssignShift() {
+  const id_karyawan = document.getElementById('assign-shift-karyawan').value;
+  const id_shift = document.getElementById('assign-shift-shift').value;
+  const tanggal = document.getElementById('assign-shift-tgl').value;
+
+  if (!id_karyawan || !id_shift || !tanggal) {
+    alert('Lengkapi data!');
+    return;
+  }
+
+  const { error } = await sb.from('shift_detail').insert([{
+    id_karyawan,
+    id_shift,
+    tanggal
+  }]);
+
+  if (error) {
+    alert(error.message);
+    return;
+  }
+
+  alert('✅ Shift berhasil di-assign');
+}
+
+function buildLokasiCell(r) {
+  const nama  = r.lokasi_nama || '—';
+  const jarak = r.jarak_kantor != null ? ` (${r.jarak_kantor}m)` : '';
+  if (r.di_area_kantor === true)  return `<span class="badge badge-ok"  title="${esc(nama)}${jarak}">✅ ${esc(nama)}</span>`;
+  if (r.di_area_kantor === false) return `<span class="badge badge-out" title="${esc(nama)}${jarak}">⚠️ ${esc(nama)}</span>`;
+  return esc(nama);
+}
+
+function buildTable(rows) {
+  if (!rows.length) return `<table><tr class="empty-row"><td colspan="8">Belum ada data</td></tr></table>`;
+  return `<table><thead><tr><th>Foto</th><th>Nama</th><th>ID</th><th>Tipe</th><th>Jam</th><th>Tanggal</th><th>Lokasi</th><th>Jarak</th></tr></thead><tbody>
+    ${rows.map(r=>`<tr>
+      <td>${r.foto_url?`<img class="foto-thumb" src="${r.foto_url}" onclick="lihatFoto('${r.foto_url}','${esc(r.nama)}')">`:`<span class="no-foto">👤</span>`}</td>
+      <td><strong>${esc(r.nama)}</strong></td>
+      <td style="color:var(--muted)">${esc(r.id_karyawan)}</td>
+      <td><span class="badge badge-${r.tipe}">${r.tipe==='masuk'?'🟢 Masuk':'🔴 Pulang'}</span></td>
+      <td>${r.jam||'—'}</td><td>${r.tanggal||'—'}</td>
+      <td>${buildLokasiCell(r)}</td>
+      <td>${r.jarak_kantor!=null?r.jarak_kantor+'m':'—'}</td>
+    </tr>`).join('')}</tbody></table>`;
+}
+
+function filterData() {
+  const tgl=(document.getElementById('filter-tgl')?.value||'');
+  const tipe=(document.getElementById('filter-tipe')?.value||'');
+  const nama=(document.getElementById('filter-nama')?.value||'').toLowerCase();
+  let rows=allData;
+  if(tgl) rows=rows.filter(r=>r.tanggal===tgl);
+  if(tipe) rows=rows.filter(r=>r.tipe===tipe);
+  if(nama) rows=rows.filter(r=>r.nama?.toLowerCase().includes(nama)||r.id_karyawan?.toLowerCase().includes(nama));
+  document.getElementById('tbl-semua').innerHTML=buildTable(rows);
+}
+function resetFilter() {
+  document.getElementById('filter-tgl').value='';
+  document.getElementById('filter-tipe').value='';
+  document.getElementById('filter-nama').value='';
+  filterData();
+}
+
+function renderRekap() {
+  const bulan=document.getElementById('filter-bulan-rekap')?.value||'';
+  const rows=bulan?allData.filter(r=>r.tanggal?.startsWith(bulan)):allData;
+  const map={};
+  rows.forEach(r=>{
+    if(!map[r.id_karyawan]) map[r.id_karyawan]={nama:r.nama,id:r.id_karyawan,masuk:new Set(),pulang:0,luar:0};
+    if(r.tipe==='masuk') map[r.id_karyawan].masuk.add(r.tanggal);
+    if(r.tipe==='pulang') map[r.id_karyawan].pulang++;
+    if(r.di_area_kantor===false) map[r.id_karyawan].luar++;
+  });
+  const cards=Object.values(map);
+  if(!cards.length){document.getElementById('rekap-container').innerHTML='<div class="loading-bar">Belum ada data</div>';return;}
+  document.getElementById('rekap-container').innerHTML=`<div class="rekap-grid">${cards.map(c=>`
+    <div class="rekap-card">
+      <div class="rekap-nama">${esc(c.nama)}</div><div class="rekap-id">${esc(c.id)}</div>
+      <div class="rekap-stats">
+        <div class="rekap-stat"><div class="num" style="color:var(--success)">${c.masuk.size}</div><div class="lbl">Hari Masuk</div></div>
+        <div class="rekap-stat"><div class="num" style="color:var(--accent)">${c.pulang}</div><div class="lbl">Pulang</div></div>
+        <div class="rekap-stat"><div class="num" style="color:var(--warn)">${c.luar}</div><div class="lbl">Luar Area</div></div>
+      </div>
+    </div>`).join('')}</div>`;
+}
+
+function exportExcel(mode) {
+  const bulanEl=mode==='rekap'?'exp-bulan-rekap':'exp-bulan';
+  const bulan=document.getElementById(bulanEl)?.value||'';
+  const rows=bulan?allData.filter(r=>r.tanggal?.startsWith(bulan)):allData;
+  const wb=XLSX.utils.book_new();
+  if(mode==='semua'){
+    const ws=XLSX.utils.aoa_to_sheet([['Tanggal','Nama','ID Karyawan','Tipe','Jam','Lokasi','GPS Lat','GPS Lng','Jarak (m)','Di Area Kantor','Link Foto'],...rows.map(r=>[r.tanggal,r.nama,r.id_karyawan,r.tipe,r.jam,r.lokasi_nama||'—',r.latitude,r.longitude,r.jarak_kantor,r.di_area_kantor?'Ya':'Tidak',r.foto_url||''])]);
+    XLSX.utils.book_append_sheet(wb,ws,'Data Absensi');
+    XLSX.writeFile(wb,`absensi-${bulan||'semua'}.xlsx`);
+  } else {
+    const map={};
+    rows.forEach(r=>{
+      if(!map[r.id_karyawan]) map[r.id_karyawan]={nama:r.nama,id:r.id_karyawan,masuk:new Set(),pulang:0,luar:0};
+      if(r.tipe==='masuk') map[r.id_karyawan].masuk.add(r.tanggal);
+      if(r.tipe==='pulang') map[r.id_karyawan].pulang++;
+      if(r.di_area_kantor===false) map[r.id_karyawan].luar++;
+    });
+    const ws=XLSX.utils.aoa_to_sheet([['Nama','ID Karyawan','Total Hari Masuk','Total Pulang','Total Luar Area'],...Object.values(map).map(c=>[c.nama,c.id,c.masuk.size,c.pulang,c.luar])]);
+    XLSX.utils.book_append_sheet(wb,ws,'Rekap Payroll');
+    XLSX.writeFile(wb,`rekap-payroll-${bulan||'semua'}.xlsx`);
+  }
+}
+
+function renderAdmin(list) {
+  if (!list.length) {
+    document.getElementById('tbl-admin').innerHTML =
+      `<table><tr class="empty-row"><td>Belum ada admin</td></tr></table>`;
+    return;
+  }
+
+  document.getElementById('tbl-admin').innerHTML = `
+    <table>
+      <thead>
+        <tr>
+          <th>Username</th>
+          <th>Password</th>
+          <th>Aksi</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${list.map(a => `
+          <tr>
+            <td><strong>${esc(a.username)}</strong></td>
+            <td>${esc(a.password)}</td>
+            <td>
+              <button class="btn btn-danger btn-sm"
+                onclick="hapusAdmin('${a.id}')">🗑️ Hapus</button>
+            </td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+}
+
+async function hapusAdmin(id) {
+  if (!confirm('Yakin hapus admin ini?')) return;
+
+  const { error } = await sb
+    .from('admin_user')
+    .delete()
+    .eq('id', id);
+
+  if (error) {
+    alert(error.message);
+    return;
+  }
+
+  loadAdmin();
+}
+  
+// ─── KARYAWAN ───
+async function loadKaryawan() {
+  try {
+    const {data,error}=await sb.from('karyawan').select('*').order('nama');
+    if(!error&&data){allKaryawan=data;renderKaryawan();return;}
+  } catch(e) {}
+  allKaryawan=JSON.parse(localStorage.getItem('karyawan')||'[]');
+  renderKaryawan();
+}
+
+function renderKaryawan() {
+  const q=(document.getElementById('filter-karyawan')?.value||'').toLowerCase();
+  const st=document.getElementById('filter-status-karyawan')?.value||'';
+  let list=allKaryawan;
+  if(q) list=list.filter(k=>k.nama?.toLowerCase().includes(q)||k.id_karyawan?.toLowerCase().includes(q));
+  if(st) list=list.filter(k=>k.status===st);
+  if(!list.length){document.getElementById('tbl-karyawan').innerHTML=`<table><tr class="empty-row"><td colspan="6">Belum ada karyawan. Klik "+ Tambah Karyawan".</td></tr></table>`;return;}
+  document.getElementById('tbl-karyawan').innerHTML=`<table><thead><tr><th>Nama</th><th>ID</th><th>Jabatan</th><th>No. HP</th><th>Status</th><th>Aksi</th></tr></thead><tbody>
+    ${list.map(k=>{
+      const lokNama=getLokasiKaryawan(k.id_karyawan);
+      return `<tr>
+        <td><strong>${esc(k.nama)}</strong>${lokNama?`<div style="font-size:11px;color:var(--accent);margin-top:2px;">📍 ${esc(lokNama)}</div>`:''}
+            <div class="pola-badge" style="margin-top:3px;">📅 ${esc(getPolaLabel(k.pola_kerja||'senin-jumat', k.hari_kerja))}</div></td>
+        <td style="color:var(--muted);font-family:monospace;">${esc(k.id_karyawan)}</td>
+        <td>${esc(k.jabatan||'—')}</td><td>${esc(k.no_hp||'—')}</td>
+        <td>
+          <label class="toggle"><input type="checkbox" ${k.status==='aktif'?'checked':''} onchange="toggleStatusKaryawan('${k.id_karyawan}',this.checked)"><span class="toggle-slider"></span></label>
+          <span class="badge ${k.status==='aktif'?'badge-aktif':'badge-nonaktif'}" style="margin-left:6px;font-size:10px;">${k.status==='aktif'?'Aktif':'Nonaktif'}</span>
+        </td>
+        <td><div style="display:flex;gap:6px;">
+          <button class="nav-item" onclick="showPage('admin',this)">👤 Admin</button>
+          <button class="btn btn-outline btn-sm" onclick="openModalKaryawan('${k.id_karyawan}')">✏️ Edit</button>
+          <button class="btn btn-outline btn-sm" onclick="openModalAssign('${k.id_karyawan}')">📍 Assign</button>
+          <button class="btn btn-danger btn-sm" onclick="hapusKaryawan('${k.id_karyawan}')">🗑️</button>
+        </div></td>
+      </tr>`;
+    }).join('')}</tbody></table>`;
+}
+
+function getLokasiKaryawan(id) {
+  const assigns = allAssign.filter(x => x.id_karyawan === id);
+  if (!assigns.length) return null;
+  const names = assigns.map(a => {
+    const l = allLokasi.find(x => x.id === a.id_lokasi);
+    return l ? l.nama : '-';
+  });
+  return names.join(', ');
+}
+
+function openModalKaryawan(id=null) {
+  ['kary-edit-id','kary-nama','kary-id','kary-jabatan','kary-hp','kary-catatan'].forEach(x=>document.getElementById(x).value='');
+  document.getElementById('kary-status').value='aktif';
+  document.getElementById('kary-pola-kerja').value='senin-jumat';
+  document.getElementById('kary-hari-custom').style.display='none';
+  // reset custom chips ke senin-jumat default
+  setHariChips([1,2,3,4,5]);
+  document.getElementById('modal-karyawan-title').textContent='Tambah Karyawan';
+  if(id){
+    const k=allKaryawan.find(x=>x.id_karyawan===id);
+    if(k){
+      document.getElementById('kary-edit-id').value=k.id||'';
+      document.getElementById('kary-nama').value=k.nama||'';
+      document.getElementById('kary-id').value=k.id_karyawan||'';
+      document.getElementById('kary-jabatan').value=k.jabatan||'';
+      document.getElementById('kary-hp').value=k.no_hp||'';
+      document.getElementById('kary-status').value=k.status||'aktif';
+      document.getElementById('kary-catatan').value=k.catatan||'';
+      // load pola kerja
+      const pola = k.pola_kerja || 'senin-jumat';
+      document.getElementById('kary-pola-kerja').value = pola;
+      if(pola==='custom'){
+        document.getElementById('kary-hari-custom').style.display='block';
+        setHariChips(k.hari_kerja||[1,2,3,4,5]);
+      } else {
+        document.getElementById('kary-hari-custom').style.display='none';
+      }
+      document.getElementById('modal-karyawan-title').textContent='Edit Karyawan';
+    }
+  }
+  document.getElementById('modal-karyawan').classList.add('show');
+}
+
+// ✅ FIX: saveKaryawan - tidak ada referensi idKaryawan yang undefined
+async function saveKaryawan() {
+  const nama=document.getElementById('kary-nama').value.trim();
+  const id_karyawan=document.getElementById('kary-id').value.trim();
+  if(!nama||!id_karyawan){alert('Nama dan ID wajib diisi!');return;}
+  const pola_kerja = document.getElementById('kary-pola-kerja').value;
+  const hari_kerja = getHariKerjaArray(pola_kerja);
+  const kary={nama,id_karyawan,jabatan:document.getElementById('kary-jabatan').value.trim(),no_hp:document.getElementById('kary-hp').value.trim(),status:document.getElementById('kary-status').value,catatan:document.getElementById('kary-catatan').value.trim(),pola_kerja,hari_kerja,updated_at:new Date().toISOString()};
+  const editId=document.getElementById('kary-edit-id').value;
+  if(editId) kary.id=editId;
+  let saved=false;
+  try {
+    if(editId){const{error}=await sb.from('karyawan').update(kary).eq('id',editId);if(!error)saved=true;}
+    else{const{data,error}=await sb.from('karyawan').insert([kary]).select();if(!error&&data){kary.id=data[0].id;saved=true;}}
+  } catch(e){console.error(e);}
+  if(!saved){
+    kary.id=kary.id||Date.now().toString();
+    const idx=allKaryawan.findIndex(k=>k.id_karyawan===id_karyawan);
+    if(idx>=0)allKaryawan[idx]=kary;else allKaryawan.push(kary);
+    localStorage.setItem('karyawan',JSON.stringify(allKaryawan));
+  } else { await loadKaryawan(); }
+  closeModal('modal-karyawan');renderKaryawan();renderOverview();
+  alert('✅ Karyawan berhasil disimpan!');
+}
+
+async function toggleStatusKaryawan(id_karyawan,isAktif) {
+  const status=isAktif?'aktif':'nonaktif';
+  try{await sb.from('karyawan').update({status,updated_at:new Date().toISOString()}).eq('id_karyawan',id_karyawan);}catch(e){}
+  const k=allKaryawan.find(x=>x.id_karyawan===id_karyawan);
+  if(k)k.status=status;
+  localStorage.setItem('karyawan',JSON.stringify(allKaryawan));
+  renderKaryawan();renderOverview();
+}
+
+async function hapusKaryawan(id_karyawan) {
+  if(!confirm(`Yakin hapus karyawan ${id_karyawan}?`))return;
+  try{await sb.from('karyawan').delete().eq('id_karyawan',id_karyawan);}catch(e){}
+  allKaryawan=allKaryawan.filter(k=>k.id_karyawan!==id_karyawan);
+  localStorage.setItem('karyawan',JSON.stringify(allKaryawan));
+  renderKaryawan();
+}
+
+// ─── LOKASI ───
+async function loadLokasi() {
+  try{const{data,error}=await sb.from('lokasi').select('*').order('nama');if(!error&&data){allLokasi=data;renderLokasi();updateLokasiSelect();return;}}catch(e){}
+  allLokasi=JSON.parse(localStorage.getItem('lokasi')||'[]');
+  renderLokasi();updateLokasiSelect();
+}
+
+function renderLokasi() {
+  if(!allLokasi.length){document.getElementById('loc-container').innerHTML=`<div class="loading-bar">Belum ada lokasi. Klik "+ Tambah Lokasi".</div>`;return;}
+  document.getElementById('loc-container').innerHTML=`<div class="loc-grid">${allLokasi.map(l=>{
+    const jml=allAssign.filter(a=>a.id_lokasi===l.id).length;
+    return `<div class="loc-card">
+      <div class="loc-name">📍 ${esc(l.nama)}</div>
+      <div class="loc-sub">${esc(l.alamat||'—')}</div>
+      <span class="loc-badge">👷 ${jml} karyawan</span>
+      <div class="loc-coords">Lat: ${l.lat||'—'}<br>Lng: ${l.lng||'—'}<br>Radius: ${l.radius||100}m</div>
+      <div style="margin-bottom:10px;"><span class="badge ${l.status==='aktif'?'badge-aktif':'badge-nonaktif'}">${l.status==='aktif'?'✅ Aktif':'🔴 Selesai'}</span></div>
+      <div class="loc-actions">
+        <button class="btn btn-outline btn-sm" onclick="openModalLokasi('${l.id}')">✏️ Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="hapusLokasi('${l.id}')">🗑️ Hapus</button>
+      </div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+function updateLokasiSelect() {
+  ['assign-lokasi-select','filter-assign-lokasi'].forEach(id=>{
+    const el=document.getElementById(id);if(!el)return;
+    const first=el.options[0];el.innerHTML='';el.appendChild(first);
+    allLokasi.forEach(l=>{const o=document.createElement('option');o.value=l.id;o.textContent=l.nama;el.appendChild(o);});
+  });
+}
+
+function openModalLokasi(id=null) {
+  ['lok-edit-id','lok-nama','lok-alamat','lok-lat','lok-lng'].forEach(x=>document.getElementById(x).value='');
+  document.getElementById('lok-radius').value='100';document.getElementById('lok-status').value='aktif';
+  document.getElementById('modal-lokasi-title').textContent='Tambah Lokasi';
+  if(id){
+    const l=allLokasi.find(x=>x.id===id);
+    if(l){document.getElementById('lok-edit-id').value=l.id||'';document.getElementById('lok-nama').value=l.nama||'';document.getElementById('lok-alamat').value=l.alamat||'';document.getElementById('lok-lat').value=l.lat||'';document.getElementById('lok-lng').value=l.lng||'';document.getElementById('lok-radius').value=l.radius||100;document.getElementById('lok-status').value=l.status||'aktif';document.getElementById('modal-lokasi-title').textContent='Edit Lokasi';}
+  }
+  document.getElementById('modal-lokasi').classList.add('show');
+}
+
+async function saveLokasi() {
+  const nama=document.getElementById('lok-nama').value.trim();
+  const lat=parseFloat(document.getElementById('lok-lat').value);
+  const lng=parseFloat(document.getElementById('lok-lng').value);
+  const radius=parseInt(document.getElementById('lok-radius').value)||100;
+  if(!nama){alert('Nama lokasi wajib!');return;}
+  if(isNaN(lat)||isNaN(lng)){alert('Koordinat GPS wajib diisi!');return;}
+  const lok={nama,alamat:document.getElementById('lok-alamat').value.trim(),lat,lng,radius,status:document.getElementById('lok-status').value,updated_at:new Date().toISOString()};
+  const editId=document.getElementById('lok-edit-id').value;
+  if(editId)lok.id=editId;
+  let saved=false;
+  try{
+    if(editId){const{error}=await sb.from('lokasi').update(lok).eq('id',editId);if(!error)saved=true;}
+    else{const{data,error}=await sb.from('lokasi').insert([lok]).select();if(!error&&data){lok.id=data[0].id;saved=true;}}
+  }catch(e){}
+  if(!saved){lok.id=lok.id||Date.now().toString();const idx=allLokasi.findIndex(l=>l.id===lok.id);if(idx>=0)allLokasi[idx]=lok;else allLokasi.push(lok);localStorage.setItem('lokasi',JSON.stringify(allLokasi));}
+  else{await loadLokasi();}
+  closeModal('modal-lokasi');renderLokasi();updateLokasiSelect();
+  alert('✅ Lokasi berhasil disimpan!');
+}
+
+async function hapusLokasi(id) {
+  if(!confirm('Yakin hapus lokasi ini?'))return;
+  try{await sb.from('assign_lokasi').delete().eq('id_lokasi',id);await sb.from('lokasi').delete().eq('id',id);}catch(e){}
+  allLokasi=allLokasi.filter(l=>l.id!==id);allAssign=allAssign.filter(a=>a.id_lokasi!==id);
+  localStorage.setItem('lokasi',JSON.stringify(allLokasi));localStorage.setItem('assign',JSON.stringify(allAssign));
+  renderLokasi();renderAssign();updateLokasiSelect();
+}
+
+// ─── ASSIGN ───
+async function loadAssign() {
+  try{const{data,error}=await sb.from('assign_lokasi').select('*');if(!error&&data){allAssign=data;renderAssign();return;}}catch(e){}
+  allAssign=JSON.parse(localStorage.getItem('assign')||'[]');renderAssign();
+}
+
+function openModalAssign(id) {
+  const k=allKaryawan.find(x=>x.id_karyawan===id);if(!k)return;
+  document.getElementById('assign-kary-id').value=id;
+  document.getElementById('assign-kary-nama').textContent=k.nama;
+  document.getElementById('assign-kary-id-label').textContent=id;
+  document.getElementById('assign-tgl-mulai').value=new Date().toISOString().split('T')[0];
+  document.getElementById('assign-ket').value='';
+  const cur=allAssign.find(a=>a.id_karyawan===id);
+  document.getElementById('assign-lokasi-select').value='';
+  // document.getElementById('assign-lokasi-select').value=cur?cur.id_lokasi:'';
+  document.getElementById('modal-assign').classList.add('show');
+}
+
+async function saveAssign() {
+  const id_karyawan = document.getElementById('assign-kary-id').value;
+  const id_lokasi = document.getElementById('assign-lokasi-select').value;
+
+  if (!id_karyawan || !id_lokasi) {
+    alert('Pilih lokasi!');
+    return;
+  }
+    const exists = allAssign.find(a => 
+    a.id_karyawan === id_karyawan && a.id_lokasi === id_lokasi
+  );
+  if (exists) {
+    alert('Lokasi ini sudah di-assign ke karyawan!');
+    return;
+  }
+  const assign = {
+    id_karyawan,
+    id_lokasi,
+    tgl_mulai: document.getElementById('assign-tgl-mulai').value,
+    keterangan: document.getElementById('assign-ket').value.trim(),
+    updated_at: new Date().toISOString()
+  };
+  const { error } = await sb.from('assign_lokasi').insert([assign]);
+  if (error) {
+    alert(error.message);
+    return;
+  }
+  await loadAssign();
+  closeModal('modal-assign');
+  alert('✅ Assign berhasil ditambahkan!');
+}
+ 
+function renderAssign() {
+  const filterLok=document.getElementById('filter-assign-lokasi')?.value||'';
+  let list=allKaryawan;
+  if(filterLok){const ids=allAssign.filter(a=>a.id_lokasi===filterLok).map(a=>a.id_karyawan);list=list.filter(k=>ids.includes(k.id_karyawan));}
+  if(!list.length){document.getElementById('tbl-assign').innerHTML=`<div class="loading-bar">Belum ada karyawan.</div>`;return;}
+  document.getElementById('tbl-assign').innerHTML=list.map(k=>{
+    // const assign=allAssign.find(a=>a.id_karyawan===k.id_karyawan);
+    const assigns = allAssign.filter(a => a.id_karyawan === k.id_karyawan);
+    const hasLokasi = assigns.length > 0;
+    // const lok=assign?allLokasi.find(l=>l.id===assign.id_lokasi):null;
+    const lokasiList = assigns.map(a => {
+    const l = allLokasi.find(x => x.id === a.id_lokasi);
+    return l ? l.nama : '-';
+    }).join(', ');
+    return `<div class="assign-row">
+      <div class="assign-info">
+        <div class="assign-name">${esc(k.nama)} <span class="badge ${k.status==='aktif'?'badge-aktif':'badge-nonaktif'}" style="margin-left:6px;font-size:10px;">${k.status==='aktif'?'Aktif':'Nonaktif'}</span></div>
+        <div class="assign-id">${esc(k.id_karyawan)}${k.jabatan?' · '+k.jabatan:''}</div>
+        <div class="assign-loc">${lokasiList ? '📍 ' + lokasiList : '⚪ Belum di-assign'}</div>
+      </div>
+      <button class="btn btn-outline btn-sm" onclick="openModalAssign('${k.id_karyawan}')">${hasLokasi?'🔄 Tambah':'📍 Assign'}</button>
+    </div>`;
+  }).join('');
+}
+
+// ─── SHIFT (✅ FIX: hanya 1 definisi) ───
+async function loadShift() {
+  try{
+    const{data,error}=await sb.from('shift').select('*').order('nama_shift');
+    if(!error&&data){allShift=data;renderShift();return;}
+  }catch(e){}
+  document.getElementById('tbl-shift').innerHTML=`<table><tr class="empty-row"><td colspan="5">Tabel shift belum ada di Supabase, atau belum ada data.</td></tr></table>`;
+}
+
+function renderShift() {
+  if(!allShift.length){document.getElementById('tbl-shift').innerHTML=`<table><tr class="empty-row"><td colspan="5">Belum ada shift. Klik "+ Tambah Shift".</td></tr></table>`;return;}
+  document.getElementById('tbl-shift').innerHTML=`<table><thead><tr><th>Nama Shift</th><th>Jam Masuk</th><th>Jam Pulang</th><th>Toleransi</th><th>Aksi</th></tr></thead><tbody>
+    ${allShift.map(s=>`<tr>
+      <td><strong>${esc(s.nama_shift)}</strong></td>
+      <td>${s.jam_masuk||'—'}</td><td>${s.jam_pulang||'—'}</td>
+      <td>${s.toleransi_menit!=null?s.toleransi_menit+' menit':'—'}</td>
+      <td><div style="display:flex;gap:6px;">
+        <button class="btn btn-outline btn-sm" onclick="openModalShift('${s.id}')">✏️ Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="hapusShift('${s.id}')">🗑️</button>
+      </div></td>
+    </tr>`).join('')}
+  </tbody></table>`;
+}
+
+function openModalShift(id=null) {
+  ['shift-edit-id','shift-nama','shift-masuk','shift-pulang'].forEach(x=>document.getElementById(x).value='');
+  document.getElementById('shift-toleransi').value='15';
+  document.getElementById('modal-shift-title').textContent='Tambah Shift';
+  if(id){
+    const s=allShift.find(x=>x.id==id);
+    if(s){document.getElementById('shift-edit-id').value=s.id;document.getElementById('shift-nama').value=s.nama_shift||'';document.getElementById('shift-masuk').value=s.jam_masuk||'';document.getElementById('shift-pulang').value=s.jam_pulang||'';document.getElementById('shift-toleransi').value=s.toleransi_menit??15;document.getElementById('modal-shift-title').textContent='Edit Shift';}
+  }
+  document.getElementById('modal-shift').classList.add('show');
+}
+
+async function saveShift() {
+  const nama_shift=document.getElementById('shift-nama').value.trim();
+  const jam_masuk=document.getElementById('shift-masuk').value;
+  const jam_pulang=document.getElementById('shift-pulang').value;
+  if(!nama_shift||!jam_masuk||!jam_pulang){alert('Nama shift, jam masuk, dan jam pulang wajib diisi!');return;}
+  const shift={nama_shift,jam_masuk,jam_pulang,toleransi_menit:parseInt(document.getElementById('shift-toleransi').value)||15};
+  const editId=document.getElementById('shift-edit-id').value;
+  try{
+    if(editId){await sb.from('shift').update(shift).eq('id',editId);}
+    else{await sb.from('shift').insert([shift]);}
+    await loadShift();
+  }catch(e){alert('Gagal simpan shift. Pastikan tabel shift sudah dibuat di Supabase.');console.error(e);return;}
+  closeModal('modal-shift');alert('✅ Shift berhasil disimpan!');
+}
+
+async function hapusShift(id) {
+  if(!confirm('Yakin hapus shift ini?'))return;
+  try{await sb.from('shift').delete().eq('id',id);await loadShift();}catch(e){alert('Gagal hapus shift.');}
+}
+
+// ─── UTILS ───
+function esc(s){return String(s||'').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function lihatFoto(url,label){document.getElementById('modal-foto-img').src=url;document.getElementById('modal-foto-label').textContent=label;document.getElementById('modal-foto').classList.add('show');}
+function closeModal(id){document.getElementById(id).classList.remove('show');}
+function showPage(name,el) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  el.classList.add('active');
+  document.querySelector('.sidebar').classList.remove('show');
+  const overlay = document.querySelector('.overlay');
+  if (overlay) overlay.classList.remove('show');
+  if(name==='admin'){loadAdmin();}
+  if(name==='karyawan')renderKaryawan();
+  if(name==='lokasi')renderLokasi();
+  if(name==='assign'){renderAssign();updateLokasiSelect();}
+  if(name==='overview')renderOverview();
+  if(name==='shift')loadShift();
+  if(name==='assign-shift'){loadAssignShiftForm();}
+  if(name==='cuti-pengajuan'){loadCutiPengajuan();}
+  if(name==='cuti-kuota'){loadCutiKuota();}
+  if(name==='tipe-cuti'){loadTipeCuti();}
+}
+
+function toggleSidebar(){
+  document.querySelector('.sidebar').classList.toggle('show');
+  document.querySelector('.overlay').classList.toggle('show');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const isLogin = localStorage.getItem('isLogin');
+
+  if (isLogin === 'true') {
+    document.getElementById('login-page').style.display = 'none';
+    document.getElementById('dashboard-page').style.display = 'block';
+    initDashboard();
+  }
+});
+
+async function loadAdmin() {
+  const { data, error } = await sb
+    .from('admin_user')
+    .select('*')
+    .order('username');
+
+  if (error) {
+    console.error(error);
+    document.getElementById('tbl-admin').innerHTML =
+      `<div class="loading-bar">❌ Gagal load data</div>`;
+    return;
+  }
+
+  renderAdmin(data || []);
+}
+</script>
+<!-- Modal Approval Cuti -->
+<div class="modal-overlay" id="modal-cuti-approval">
+  <div class="modal-box">
+    <div class="modal-title" id="modal-cuti-title">Detail Pengajuan Cuti</div>
+    <input type="hidden" id="cuti-approval-id">
+    <div id="cuti-approval-detail" style="background:var(--bg);border-radius:10px;padding:14px;margin-bottom:16px;font-size:13px;line-height:2;"></div>
+    <div class="form-field">
+      <label class="form-label">Catatan HR (opsional)</label>
+      <textarea class="form-input" id="cuti-approval-catatan" rows="2" placeholder="Isi catatan jika ditolak atau ada keterangan..." style="resize:none;"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modal-cuti-approval')">Tutup</button>
+      <button class="btn btn-danger"   onclick="prosesApproval('ditolak')">❌ Tolak</button>
+      <button class="btn btn-success"  onclick="prosesApproval('disetujui')">✅ Setujui</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Kuota Individual -->
+<div class="modal-overlay" id="modal-kuota">
+  <div class="modal-box">
+    <div class="modal-title">Set Kuota Cuti</div>
+    <input type="hidden" id="kuota-edit-id-karyawan">
+    <div style="background:var(--bg);border-radius:10px;padding:12px 14px;margin-bottom:16px;">
+      <div style="font-size:14px;font-weight:600;" id="kuota-karyawan-nama">—</div>
+      <div style="font-size:12px;color:var(--muted);" id="kuota-karyawan-id">—</div>
+    </div>
+    <div class="form-row">
+      <div class="form-field">
+        <label class="form-label">Tahun</label>
+        <input class="form-input" type="number" id="kuota-tahun" value="" min="2020" max="2099">
+      </div>
+      <div class="form-field">
+        <label class="form-label">Jumlah Hari Cuti</label>
+        <input class="form-input" type="number" id="kuota-hari" placeholder="12" min="0" max="365">
+      </div>
+    </div>
+    <div class="form-field">
+      <label class="form-label">Catatan</label>
+      <input class="form-input" type="text" id="kuota-catatan" placeholder="opsional">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modal-kuota')">Batal</button>
+      <button class="btn btn-primary" onclick="saveKuota()">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Bulk Kuota -->
+<div class="modal-overlay" id="modal-bulk-kuota">
+  <div class="modal-box">
+    <div class="modal-title">⚡ Set Kuota Massal</div>
+    <div class="form-row">
+      <div class="form-field">
+        <label class="form-label">Tahun</label>
+        <input class="form-input" type="number" id="bulk-tahun" min="2020" max="2099">
+      </div>
+      <div class="form-field">
+        <label class="form-label">Kuota Default (hari)</label>
+        <input class="form-input" type="number" id="bulk-hari" value="12" min="0" max="365">
+      </div>
+    </div>
+    <div class="info-box" style="margin-top:4px;">⚠️ Akan mengatur kuota untuk <strong>semua karyawan aktif</strong> yang belum memiliki kuota di tahun yang dipilih. Karyawan yang sudah diset kuota-nya tidak akan terpengaruh.</div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modal-bulk-kuota')">Batal</button>
+      <button class="btn btn-primary" onclick="saveBulkKuota()">Terapkan</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// =============================================
+// CUTI STATE
+// =============================================
+let allCutiPengajuan = [];
+let allCutiKuota     = [];
+
+// =============================================
+// LOAD CUTI PENGAJUAN
+// =============================================
+async function loadCutiPengajuan() {
+  document.getElementById('tbl-cuti').innerHTML = '<div class="loading-bar">⏳ Memuat data...</div>';
+  const { data, error } = await sb.from('cuti_pengajuan').select('*').order('created_at', { ascending: false });
+  if (error) { document.getElementById('tbl-cuti').innerHTML = '<div class="loading-bar">❌ Gagal load data cuti</div>'; return; }
+  allCutiPengajuan = data || [];
+  renderCutiStats();
+  filterCuti();
+}
+
+function renderCutiStats() {
+  const tahun = new Date().getFullYear();
+  const bulan = new Date().toISOString().slice(0,7);
+  const thisYear = allCutiPengajuan.filter(r => r.tahun == tahun);
+  document.getElementById('cs-pending').textContent   = allCutiPengajuan.filter(r => r.status === 'pending').length;
+  document.getElementById('cs-disetujui').textContent = allCutiPengajuan.filter(r => r.status === 'disetujui' && r.created_at?.startsWith(bulan)).length;
+  document.getElementById('cs-ditolak').textContent   = allCutiPengajuan.filter(r => r.status === 'ditolak'   && r.created_at?.startsWith(bulan)).length;
+  document.getElementById('cs-hari').textContent      = thisYear.filter(r => r.status === 'disetujui').reduce((s,r) => s + (r.durasi_hari||0), 0) + ' hari';
+}
+
+function filterCuti() {
+  const status = document.getElementById('cuti-filter-status')?.value || '';
+  const jenis  = document.getElementById('cuti-filter-jenis')?.value  || '';
+  const nama   = (document.getElementById('cuti-filter-nama')?.value  || '').toLowerCase();
+  let rows = allCutiPengajuan;
+  if (status) rows = rows.filter(r => r.status === status);
+  if (jenis)  rows = rows.filter(r => r.jenis_cuti === jenis);
+  if (nama)   rows = rows.filter(r => r.nama?.toLowerCase().includes(nama) || r.id_karyawan?.toLowerCase().includes(nama));
+  renderCutiTable(rows);
+}
+
+function resetCutiFilter() {
+  document.getElementById('cuti-filter-status').value = '';
+  document.getElementById('cuti-filter-jenis').value  = '';
+  document.getElementById('cuti-filter-nama').value   = '';
+  filterCuti();
+}
+
+function renderCutiTable(rows) {
+  if (!rows.length) {
+    document.getElementById('tbl-cuti').innerHTML = `<table><tr class="empty-row"><td colspan="9">Belum ada pengajuan cuti</td></tr></table>`;
+    return;
+  }
+  const badgeMap = { pending:'badge-pending', disetujui:'badge-disetujui', ditolak:'badge-ditolak', dibatalkan:'badge-dibatalkan' };
+  const labelMap = { pending:'⏳ Pending', disetujui:'✅ Disetujui', ditolak:'❌ Ditolak', dibatalkan:'🚫 Dibatalkan' };
+  document.getElementById('tbl-cuti').innerHTML = `
+    <table>
+      <thead><tr><th>Nama</th><th>ID</th><th>Jenis</th><th>Dari</th><th>Sampai</th><th>Hari Kerja</th><th>Kalender</th><th>Status</th><th>Keterangan</th><th>Aksi</th></tr></thead>
+      <tbody>
+        ${rows.map(r => `<tr>
+          <td><strong>${esc(r.nama)}</strong><div style="font-size:11px;color:var(--muted);">${esc(getPolaLabel(r.pola_kerja||'senin-jumat',r.hari_kerja))}</div></td>
+          <td style="color:var(--muted);font-family:monospace;">${esc(r.id_karyawan)}</td>
+          <td>${esc(r.jenis_cuti)}</td>
+          <td>${r.tanggal_dari || '—'}</td>
+          <td>${r.tanggal_sampai || '—'}</td>
+          <td><strong>${r.durasi_hari_kerja ?? r.durasi_hari ?? '—'}</strong> hari</td>
+          <td style="color:var(--muted);font-size:12px;">${r.durasi_hari || '—'} hari</td>
+          <td><span class="badge ${badgeMap[r.status]||''}">${labelMap[r.status]||r.status}</span></td>
+          <td style="max-width:140px;font-size:12px;color:var(--muted);">${esc(r.keterangan||'—')}</td>
+          <td>
+            ${r.status === 'pending' ? `<button class="btn btn-primary btn-sm" onclick="openApproval('${r.id}')">📋 Proses</button>` : `<button class="btn btn-outline btn-sm" onclick="openApproval('${r.id}')">👁️ Detail</button>`}
+          </td>
+        </tr>`).join('')}
+      </tbody>
+    </table>`;
+}
+
+function openApproval(id) {
+  const r = allCutiPengajuan.find(x => x.id == id);
+  if (!r) return;
+  document.getElementById('cuti-approval-id').value = id;
+  document.getElementById('cuti-approval-catatan').value = r.catatan_hr || '';
+  const badgeMap = { pending:'badge-pending', disetujui:'badge-disetujui', ditolak:'badge-ditolak', dibatalkan:'badge-dibatalkan' };
+  const labelMap = { pending:'⏳ Pending', disetujui:'✅ Disetujui', ditolak:'❌ Ditolak', dibatalkan:'🚫 Dibatalkan' };
+  document.getElementById('modal-cuti-title').textContent = r.status === 'pending' ? 'Proses Pengajuan Cuti' : 'Detail Pengajuan Cuti';
+  document.getElementById('cuti-approval-detail').innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:6px;">
+      <div><b>Nama:</b> ${esc(r.nama)} <span style="color:var(--muted);font-size:12px;">(${esc(r.id_karyawan)})</span></div>
+      <div><b>Jenis:</b> ${esc(r.jenis_cuti)}</div>
+      <div><b>Periode:</b> ${r.tanggal_dari} s/d ${r.tanggal_sampai}</div>
+      <div><b>Durasi (hari kerja):</b> <strong>${r.durasi_hari_kerja ?? r.durasi_hari} hari kerja</strong> ${r.durasi_hari_kerja && r.durasi_hari !== r.durasi_hari_kerja ? `<span style="color:var(--muted);font-size:12px;">(${r.durasi_hari} hari kalender)</span>` : ''}</div>
+      <div><b>Pola kerja:</b> ${esc(getPolaLabel(r.pola_kerja||'senin-jumat', r.hari_kerja))}</div>
+      <div><b>Keterangan:</b> ${esc(r.keterangan||'-')}</div>
+      <div><b>Status:</b> <span class="badge ${badgeMap[r.status]||''}">${labelMap[r.status]||r.status}</span></div>
+      <div><b>Diajukan:</b> ${r.created_at ? new Date(r.created_at).toLocaleString('id-ID') : '—'}</div>
+      ${r.catatan_hr ? `<div><b>Catatan HR:</b> ${esc(r.catatan_hr)}</div>` : ''}
+    </div>`;
+  document.getElementById('modal-cuti-approval').classList.add('show');
+}
+
+async function prosesApproval(status) {
+  const id       = document.getElementById('cuti-approval-id').value;
+  const catatan  = document.getElementById('cuti-approval-catatan').value.trim();
+  if (!id) return;
+
+  const { error } = await sb.from('cuti_pengajuan').update({
+    status,
+    catatan_hr:    catatan || null,
+    updated_at:    new Date().toISOString(),
+    approved_by:   localStorage.getItem('adminUser') || 'admin',
+    approved_at:   new Date().toISOString(),
+  }).eq('id', id);
+
+  if (error) { alert('Gagal memproses: ' + error.message); return; }
+
+  closeModal('modal-cuti-approval');
+  await loadCutiPengajuan();
+  await loadCutiKuota(); // refresh kuota setelah approval
+  alert(status === 'disetujui' ? '✅ Cuti berhasil disetujui!' : '❌ Pengajuan cuti ditolak.');
+}
+
+function exportCutiExcel() {
+  const rows = allCutiPengajuan;
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet([
+    ['Nama','ID Karyawan','Jenis Cuti','Tgl Dari','Tgl Sampai','Durasi (Hari)','Status','Keterangan','Catatan HR','Diajukan','Diproses Oleh'],
+    ...rows.map(r=>[r.nama,r.id_karyawan,r.jenis_cuti,r.tanggal_dari,r.tanggal_sampai,r.durasi_hari,r.status,r.keterangan||'',r.catatan_hr||'',r.created_at?new Date(r.created_at).toLocaleString('id-ID'):'',r.approved_by||''])
+  ]);
+  XLSX.utils.book_append_sheet(wb, ws, 'Pengajuan Cuti');
+  XLSX.writeFile(wb, `cuti-pengajuan-${new Date().toISOString().split('T')[0]}.xlsx`);
+}
+
+// =============================================
+// KUOTA CUTI
+// =============================================
+async function loadCutiKuota() {
+  const { data } = await sb.from('cuti_kuota').select('*');
+  allCutiKuota = data || [];
+  renderKuota();
+}
+
+function populateKuotaTahun() {
+  const sel = document.getElementById('kuota-filter-tahun');
+  if (!sel) return;
+  const now = new Date().getFullYear();
+  sel.innerHTML = '';
+  for (let y = now + 1; y >= now - 2; y--) {
+    sel.innerHTML += `<option value="${y}" ${y === now ? 'selected' : ''}>${y}</option>`;
+  }
+}
+
+async function renderKuota() {
+  const tahun = parseInt(document.getElementById('kuota-filter-tahun')?.value) || new Date().getFullYear();
+  const karyawanAktif = allKaryawan.filter(k => k.status === 'aktif');
+
+  // Hitung total hari cuti yang sudah diambil per karyawan (status approved)
+  const pengajuanTahun = allCutiPengajuan.filter(r => r.tahun == tahun && r.status === 'disetujui');
+  const diambilMap = {};
+  pengajuanTahun.forEach(r => { diambilMap[r.id_karyawan] = (diambilMap[r.id_karyawan] || 0) + (r.durasi_hari || 0); });
+
+  if (!karyawanAktif.length) { document.getElementById('kuota-container').innerHTML = '<div class="loading-bar">Belum ada karyawan aktif.</div>'; return; }
+
+  document.getElementById('kuota-container').innerHTML = `<div class="kuota-grid">${karyawanAktif.map(k => {
+    const kuotaData = allCutiKuota.find(q => q.id_karyawan === k.id_karyawan && q.tahun == tahun);
+    const kuota    = kuotaData?.kuota_hari ?? 12;
+    const diambil  = diambilMap[k.id_karyawan] || 0;
+    const sisa     = Math.max(0, kuota - diambil);
+    const pct      = kuota > 0 ? Math.min(100, Math.round((diambil / kuota) * 100)) : 0;
+    const barColor = pct >= 90 ? 'var(--danger)' : pct >= 60 ? 'var(--warn)' : 'var(--accent)';
+    return `<div class="kuota-card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+        <div><div class="kuota-nama">${esc(k.nama)}</div><div class="kuota-id">${esc(k.id_karyawan)}${k.jabatan?' · '+k.jabatan:''}</div></div>
+        <button class="btn btn-outline btn-sm" onclick="openModalKuota('${k.id_karyawan}')">✏️ Edit</button>
+      </div>
+      <div class="kuota-bar-wrap"><div class="kuota-bar" style="width:${pct}%;background:${barColor};"></div></div>
+      <div style="font-size:11px;color:var(--muted);text-align:right;margin-bottom:4px;">${pct}% terpakai</div>
+      <div class="kuota-stats">
+        <div class="kuota-stat"><div class="num" style="color:var(--accent)">${kuota}</div><div class="lbl">Kuota</div></div>
+        <div class="kuota-stat"><div class="num" style="color:var(--warn)">${diambil}</div><div class="lbl">Diambil</div></div>
+        <div class="kuota-stat"><div class="num" style="color:var(--success)">${sisa}</div><div class="lbl">Sisa</div></div>
+      </div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+function openModalKuota(idKaryawan) {
+  const k = allKaryawan.find(x => x.id_karyawan === idKaryawan);
+  const tahun = parseInt(document.getElementById('kuota-filter-tahun')?.value) || new Date().getFullYear();
+  const existing = allCutiKuota.find(q => q.id_karyawan === idKaryawan && q.tahun == tahun);
+  document.getElementById('kuota-edit-id-karyawan').value = idKaryawan;
+  document.getElementById('kuota-karyawan-nama').textContent = k?.nama || idKaryawan;
+  document.getElementById('kuota-karyawan-id').textContent   = idKaryawan;
+  document.getElementById('kuota-tahun').value = tahun;
+  document.getElementById('kuota-hari').value  = existing?.kuota_hari ?? 12;
+  document.getElementById('kuota-catatan').value = existing?.catatan || '';
+  document.getElementById('modal-kuota').classList.add('show');
+}
+
+async function saveKuota() {
+  const idKaryawan = document.getElementById('kuota-edit-id-karyawan').value;
+  const tahun      = parseInt(document.getElementById('kuota-tahun').value);
+  const kuota_hari = parseInt(document.getElementById('kuota-hari').value);
+  const catatan    = document.getElementById('kuota-catatan').value.trim();
+  if (!idKaryawan || isNaN(tahun) || isNaN(kuota_hari)) { alert('Lengkapi data!'); return; }
+
+  const payload = { id_karyawan: idKaryawan, tahun, kuota_hari, catatan: catatan || null, updated_at: new Date().toISOString() };
+  const { error } = await sb.from('cuti_kuota').upsert([payload], { onConflict: 'id_karyawan,tahun' });
+  if (error) { alert('Gagal simpan kuota: ' + error.message); return; }
+  await loadCutiKuota();
+  closeModal('modal-kuota');
+  alert('✅ Kuota cuti berhasil disimpan!');
+}
+
+function openModalBulkKuota() {
+  const tahun = parseInt(document.getElementById('kuota-filter-tahun')?.value) || new Date().getFullYear();
+  document.getElementById('bulk-tahun').value = tahun;
+  document.getElementById('bulk-hari').value  = 12;
+  document.getElementById('modal-bulk-kuota').classList.add('show');
+}
+
+async function saveBulkKuota() {
+  const tahun      = parseInt(document.getElementById('bulk-tahun').value);
+  const kuota_hari = parseInt(document.getElementById('bulk-hari').value);
+  if (isNaN(tahun) || isNaN(kuota_hari)) { alert('Isi tahun dan jumlah hari!'); return; }
+
+  const aktif = allKaryawan.filter(k => k.status === 'aktif');
+  const sudahAda = new Set(allCutiKuota.filter(q => q.tahun == tahun).map(q => q.id_karyawan));
+  const baru = aktif.filter(k => !sudahAda.has(k.id_karyawan));
+
+  if (!baru.length) { alert('Semua karyawan aktif sudah memiliki kuota untuk tahun ' + tahun); return; }
+
+  const payload = baru.map(k => ({ id_karyawan: k.id_karyawan, tahun, kuota_hari, catatan: 'Set massal', updated_at: new Date().toISOString() }));
+  const { error } = await sb.from('cuti_kuota').insert(payload);
+  if (error) { alert('Gagal set massal: ' + error.message); return; }
+  await loadCutiKuota();
+  closeModal('modal-bulk-kuota');
+  alert(`✅ Kuota ${kuota_hari} hari berhasil diset untuk ${baru.length} karyawan di tahun ${tahun}!`);
+// =============================================
+// POLA HARI KERJA
+// =============================================
+const HARI_LABEL = {0:'Min',1:'Sen',2:'Sel',3:'Rab',4:'Kam',5:'Jum',6:'Sab'};
+
+function onPolaKerjaChange() {
+  const pola = document.getElementById('kary-pola-kerja').value;
+  const customDiv = document.getElementById('kary-hari-custom');
+  if (pola === 'custom') {
+    customDiv.style.display = 'block';
+  } else {
+    customDiv.style.display = 'none';
+    setHariChips(getHariKerjaArray(pola));
+  }
+}
+
+function getHariKerjaArray(pola) {
+  if (pola === 'senin-jumat')  return [1,2,3,4,5];
+  if (pola === 'senin-sabtu')  return [1,2,3,4,5,6];
+  if (pola === 'custom') {
+    return [...document.querySelectorAll('.hari-chip.on')].map(el => parseInt(el.dataset.hari));
+  }
+  return [1,2,3,4,5];
+}
+
+function setHariChips(aktifList) {
+  document.querySelectorAll('.hari-chip').forEach(chip => {
+    const h = parseInt(chip.dataset.hari);
+    chip.classList.toggle('on',  aktifList.includes(h));
+    chip.classList.toggle('off', !aktifList.includes(h));
+  });
+}
+
+function toggleHari(el) {
+  const isOn = el.classList.contains('on');
+  el.classList.toggle('on',  !isOn);
+  el.classList.toggle('off',  isOn);
+}
+
+// Hitung durasi hari kerja (exclude hari libur sesuai pola karyawan)
+function hitungDurasiKerja(dari, sampai, hariKerja) {
+  if (!dari || !sampai) return 0;
+  const d1 = new Date(dari);
+  const d2 = new Date(sampai);
+  if (d2 < d1) return 0;
+  let count = 0;
+  const cur = new Date(d1);
+  while (cur <= d2) {
+    if (hariKerja.includes(cur.getDay())) count++;
+    cur.setDate(cur.getDate() + 1);
+  }
+  return count;
+}
+
+function getPolaLabel(pola, hariKerja) {
+  if (pola === 'senin-jumat') return 'Senin–Jumat';
+  if (pola === 'senin-sabtu') return 'Senin–Sabtu';
+  if (pola === 'custom' && hariKerja?.length) {
+    return hariKerja.sort().map(h => HARI_LABEL[h]).join(', ');
+  }
+  return 'Senin–Jumat';
+}
+
+// =============================================
+// TIPE CUTI
+// =============================================
+let allTipeCuti = [];
+
+async function loadTipeCuti() {
+  document.getElementById('tipe-cuti-container').innerHTML = '<div class="loading-bar">⏳ Memuat...</div>';
+  const { data, error } = await sb.from('tipe_cuti').select('*').order('nama');
+  if (error) {
+    // Fallback: pakai default built-in jika tabel belum ada
+    allTipeCuti = getDefaultTipeCuti();
+  } else {
+    allTipeCuti = data?.length ? data : getDefaultTipeCuti();
+  }
+  renderTipeCuti();
+}
+
+function getDefaultTipeCuti() {
+  return [
+    { id:'default-1', nama:'Tahunan',          emoji:'🗓️', keterangan:'Cuti tahunan reguler',              hitung_kuota:true,  maks_hari:0,  butuh_dokumen:false, status:'aktif' },
+    { id:'default-2', nama:'Sakit',             emoji:'🤒', keterangan:'Cuti karena sakit',                hitung_kuota:false, maks_hari:0,  butuh_dokumen:true,  status:'aktif' },
+    { id:'default-3', nama:'Keperluan Penting', emoji:'⭐', keterangan:'Urusan mendadak/penting',          hitung_kuota:true,  maks_hari:3,  butuh_dokumen:false, status:'aktif' },
+    { id:'default-4', nama:'Menikah',           emoji:'💍', keterangan:'Cuti pernikahan karyawan',         hitung_kuota:false, maks_hari:3,  butuh_dokumen:true,  status:'aktif' },
+    { id:'default-5', nama:'Melahirkan',        emoji:'👶', keterangan:'Cuti melahirkan / pasangan lahir', hitung_kuota:false, maks_hari:90, butuh_dokumen:true,  status:'aktif' },
+    { id:'default-6', nama:'Lainnya',           emoji:'📝', keterangan:'Cuti dengan alasan lain',          hitung_kuota:false, maks_hari:0,  butuh_dokumen:false, status:'aktif' },
+  ];
+}
+
+function renderTipeCuti() {
+  const list = allTipeCuti;
+  if (!list.length) {
+    document.getElementById('tipe-cuti-container').innerHTML = '<div class="loading-bar">Belum ada tipe cuti. Klik "+ Tambah Tipe Cuti".</div>';
+    return;
+  }
+  document.getElementById('tipe-cuti-container').innerHTML = `<div class="tipe-cuti-grid">${list.map(t => {
+    const isDefault = String(t.id).startsWith('default-');
+    return `<div class="tipe-cuti-card">
+      <div class="tipe-cuti-card-header">
+        <div style="font-size:26px;">${esc(t.emoji||'📝')}</div>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <span class="badge ${t.status==='aktif'?'badge-aktif':'badge-nonaktif'}" style="font-size:10px;">${t.status==='aktif'?'Aktif':'Nonaktif'}</span>
+          ${!isDefault ? `<button class="btn btn-outline btn-sm" onclick="openModalTipeCuti('${t.id}')">✏️</button>
+          <button class="btn btn-danger btn-sm" onclick="hapusTipeCuti('${t.id}')">🗑️</button>` : `<span style="font-size:10px;color:var(--muted);">default</span>`}
+        </div>
+      </div>
+      <div class="tipe-cuti-nama">${esc(t.nama)}</div>
+      <div class="tipe-cuti-keterangan">${esc(t.keterangan||'')}</div>
+      <div class="tipe-cuti-meta">
+        <span class="meta-chip ${t.hitung_kuota?'hitung':'tidak-hitung'}">${t.hitung_kuota?'✅ Potong kuota':'❌ Di luar kuota'}</span>
+        ${t.maks_hari>0?`<span class="meta-chip kuota">Maks. ${t.maks_hari} hari</span>`:`<span class="meta-chip">Tidak dibatasi</span>`}
+        ${t.butuh_dokumen?`<span class="meta-chip" style="background:#fef9c3;color:#854d0e;">📎 Butuh dokumen</span>`:''}
+      </div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+function openModalTipeCuti(id=null) {
+  document.getElementById('tipe-cuti-edit-id').value = '';
+  document.getElementById('tipe-cuti-nama').value    = '';
+  document.getElementById('tipe-cuti-emoji').value   = '';
+  document.getElementById('tipe-cuti-keterangan').value    = '';
+  document.getElementById('tipe-cuti-maks-hari').value = '0';
+  document.getElementById('tipe-cuti-hitung-kuota').value  = '1';
+  document.getElementById('tipe-cuti-butuh-dokumen').value = '0';
+  document.getElementById('tipe-cuti-status').value = 'aktif';
+  document.getElementById('modal-tipe-cuti-title').textContent = 'Tambah Tipe Cuti';
+  if (id) {
+    const t = allTipeCuti.find(x => x.id == id);
+    if (t) {
+      document.getElementById('tipe-cuti-edit-id').value = t.id;
+      document.getElementById('tipe-cuti-nama').value    = t.nama || '';
+      document.getElementById('tipe-cuti-emoji').value   = t.emoji || '';
+      document.getElementById('tipe-cuti-keterangan').value    = t.keterangan || '';
+      document.getElementById('tipe-cuti-maks-hari').value = t.maks_hari ?? 0;
+      document.getElementById('tipe-cuti-hitung-kuota').value  = t.hitung_kuota ? '1' : '0';
+      document.getElementById('tipe-cuti-butuh-dokumen').value = t.butuh_dokumen ? '1' : '0';
+      document.getElementById('tipe-cuti-status').value = t.status || 'aktif';
+      document.getElementById('modal-tipe-cuti-title').textContent = 'Edit Tipe Cuti';
+    }
+  }
+  document.getElementById('modal-tipe-cuti').classList.add('show');
+}
+
+async function saveTipeCuti() {
+  const nama = document.getElementById('tipe-cuti-nama').value.trim();
+  if (!nama) { alert('Nama tipe cuti wajib diisi!'); return; }
+  const payload = {
+    nama,
+    emoji:         document.getElementById('tipe-cuti-emoji').value.trim() || '📝',
+    keterangan:          document.getElementById('tipe-cuti-keterangan').value.trim(),
+    maks_hari:     parseInt(document.getElementById('tipe-cuti-maks-hari').value) || 0,
+    hitung_kuota:  document.getElementById('tipe-cuti-hitung-kuota').value === '1',
+    butuh_dokumen: document.getElementById('tipe-cuti-butuh-dokumen').value === '1',
+    status:        document.getElementById('tipe-cuti-status').value,
+    updated_at:    new Date().toISOString(),
+  };
+  const editId = document.getElementById('tipe-cuti-edit-id').value;
+  let error;
+  if (editId && !String(editId).startsWith('default-')) {
+    ({ error } = await sb.from('tipe_cuti').update(payload).eq('id', editId));
+  } else {
+    ({ error } = await sb.from('tipe_cuti').insert([payload]));
+  }
+  if (error) { alert('Gagal simpan: ' + error.message); return; }
+  await loadTipeCuti();
+  closeModal('modal-tipe-cuti');
+  alert('✅ Tipe cuti berhasil disimpan!');
+}
+
+async function hapusTipeCuti(id) {
+  if (!confirm('Yakin hapus tipe cuti ini?')) return;
+  const { error } = await sb.from('tipe_cuti').delete().eq('id', id);
+  if (error) { alert('Gagal hapus: ' + error.message); return; }
+  await loadTipeCuti();
+}
+</script>
+</body>
+</html>
