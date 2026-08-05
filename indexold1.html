@@ -339,92 +339,6 @@
   .toast.warn    { background: var(--warn); }
 
   canvas { display: none; }
-
-  /* ── Tab Nav ── */
-  .tab-nav {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 6px;
-    margin-bottom: 16px;
-    background: var(--white);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 5px;
-    box-shadow: var(--shadow);
-  }
-  .tab-btn {
-    padding: 11px;
-    border-radius: 10px;
-    border: none;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    text-align: center;
-    transition: all .18s;
-    background: transparent;
-    color: var(--muted);
-  }
-  .tab-btn.active {
-    background: var(--accent);
-    color: white;
-    box-shadow: 0 2px 8px rgba(37,99,235,.25);
-  }
-
-  /* ── Cuti specific ── */
-  .cuti-jenis-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 8px;
-    margin-bottom: 4px;
-  }
-  .jenis-btn {
-    padding: 10px 6px;
-    border-radius: 10px;
-    border: 1.5px solid var(--border);
-    background: var(--white);
-    font-size: 12px;
-    font-weight: 500;
-    cursor: pointer;
-    text-align: center;
-    transition: all .15s;
-    color: var(--muted);
-  }
-  .jenis-btn.selected {
-    background: var(--accent-light);
-    border-color: var(--accent);
-    color: var(--accent);
-    font-weight: 600;
-  }
-  .quota-box {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: var(--accent-light);
-    border: 1px solid #bfdbfe;
-    border-radius: 10px;
-    padding: 12px 14px;
-    margin-bottom: 10px;
-    font-size: 13px;
-    color: #1e40af;
-  }
-  .quota-box .quota-num {
-    font-size: 22px;
-    font-weight: 800;
-    color: var(--accent);
-    line-height: 1;
-  }
-  .quota-box .quota-label { font-size: 11px; color: var(--muted); margin-top: 2px; }
-  .sisa-warn {
-    background: var(--warn-light);
-    border: 1px solid #fcd34d;
-    border-radius: 10px;
-    padding: 10px 14px;
-    font-size: 12px;
-    color: var(--warn);
-    font-weight: 500;
-    margin-bottom: 10px;
-    display: none;
-  }
 </style>
 </head>
 <body>
@@ -438,15 +352,6 @@
 
 <!-- ── Form Screen ── -->
 <div class="container" id="form-screen">
-
-  <!-- Tab Navigation -->
-  <div class="tab-nav">
-    <button class="tab-btn active" id="tab-absen-btn" onclick="switchTab('absen')">📋 Absensi</button>
-    <button class="tab-btn" id="tab-cuti-btn" onclick="switchTab('cuti')">🏖️ Pengajuan Cuti</button>
-  </div>
-
-  <!-- ══ PANEL ABSEN ══ -->
-  <div id="panel-absen">
 
   <div class="date-bar">
     <div>
@@ -520,81 +425,6 @@
 
   <button class="btn-absen" id="btn-submit" onclick="submitAbsen()">Kirim Absensi</button>
 
-  </div><!-- end panel-absen -->
-
-  <!-- ══ PANEL CUTI ══ -->
-  <div id="panel-cuti" style="display:none;">
-
-    <!-- Quota box -->
-    <div id="quota-box" class="quota-box" style="display:none;">
-      <div>
-        <div class="quota-label">Sisa Cuti Tahunan</div>
-        <div class="quota-num" id="quota-sisa">—</div>
-      </div>
-      <div style="text-align:right;">
-        <div class="quota-label">Sudah Diambil</div>
-        <div style="font-size:18px;font-weight:700;color:var(--muted);" id="quota-diambil">—</div>
-      </div>
-      <div style="text-align:right;">
-        <div class="quota-label">Kuota / Tahun</div>
-        <div style="font-size:18px;font-weight:700;color:var(--text);" id="quota-total">—</div>
-      </div>
-    </div>
-    <div class="sisa-warn" id="sisa-warn">⚠️ Sisa cuti tidak mencukupi untuk rentang tanggal yang dipilih.</div>
-
-    <!-- Data karyawan -->
-    <div class="card">
-      <div class="card-title">Data Karyawan</div>
-      <div class="input-group">
-        <label class="input-label">Nama Lengkap</label>
-        <select class="input" id="cuti-nama" onchange="onCutiNamaChange()">
-          <option value="">-- Pilih Nama --</option>
-        </select>
-      </div>
-      <div class="input-group" style="margin-bottom:0">
-        <label class="input-label">ID Karyawan</label>
-        <input class="input" type="text" id="cuti-id" readonly>
-      </div>
-    </div>
-
-    <!-- Jenis Cuti -->
-    <div class="card">
-      <div class="card-title">Jenis Cuti</div>
-      <div class="cuti-jenis-row">
-        <button class="jenis-btn selected" id="jenis-tahunan"  onclick="pilihJenis('Tahunan')">🗓️ Tahunan</button>
-        <button class="jenis-btn"          id="jenis-sakit"    onclick="pilihJenis('Sakit')">🤒 Sakit</button>
-        <button class="jenis-btn"          id="jenis-penting"  onclick="pilihJenis('Keperluan Penting')">⭐ Penting</button>
-        <button class="jenis-btn"          id="jenis-menikah"  onclick="pilihJenis('Menikah')">💍 Menikah</button>
-        <button class="jenis-btn"          id="jenis-melahirkan" onclick="pilihJenis('Melahirkan')">👶 Melahirkan</button>
-        <button class="jenis-btn"          id="jenis-lain"     onclick="pilihJenis('Lainnya')">📝 Lainnya</button>
-      </div>
-    </div>
-
-    <!-- Tanggal -->
-    <div class="card">
-      <div class="card-title">Tanggal Cuti</div>
-      <div class="input-group">
-        <label class="input-label">Tanggal Mulai</label>
-        <input class="input" type="date" id="cuti-dari" onchange="hitungDurasi()">
-      </div>
-      <div class="input-group" style="margin-bottom:0">
-        <label class="input-label">Tanggal Selesai</label>
-        <input class="input" type="date" id="cuti-sampai" onchange="hitungDurasi()">
-      </div>
-      <div id="durasi-box" style="display:none;margin-top:10px;padding:10px 14px;background:var(--success-light);border-radius:10px;font-size:13px;color:var(--success);font-weight:600;"></div>
-    </div>
-
-    <!-- Keterangan -->
-    <div class="card">
-      <div class="card-title">Keterangan</div>
-      <div class="input-group" style="margin-bottom:0">
-        <textarea class="input" id="cuti-keterangan" rows="3" placeholder="Isi alasan / keterangan cuti (opsional)" style="resize:none;line-height:1.5;"></textarea>
-      </div>
-    </div>
-
-    <button class="btn-absen" id="btn-submit-cuti" onclick="submitCuti()" style="background:var(--success);">Kirim Pengajuan Cuti</button>
-  </div><!-- end panel-cuti -->
-
 </div>
 
 <!-- ── Success Screen ── -->
@@ -608,17 +438,6 @@
   </div>
 </div>
 
-<!-- ── Cuti Success Screen ── -->
-<div class="container">
-  <div class="success-screen" id="success-cuti-screen">
-    <div class="success-icon">🏖️</div>
-    <h2>Pengajuan Terkirim!</h2>
-    <p>Pengajuan cuti kamu sudah dikirim ke HR. Menunggu persetujuan admin.</p>
-    <div class="detail-box" id="detail-cuti-box"></div>
-    <button class="btn-lagi" onclick="ajukanCutiLagi()">Ajukan Lagi</button>
-  </div>
-</div>
-
 <div class="toast" id="toast"></div>
 
 <script>
@@ -628,8 +447,7 @@
 const SUPABASE_URL = 'https://szjlxhfawjopjyfacwxe.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN6amx4aGZhd2pvcGp5ZmFjd3hlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzODU1MDksImV4cCI6MjA5MTk2MTUwOX0.-x6FGoEId7d6PwGRKTHYgs92bkrSpddX15vQlhMVazc';
 
-const CLOUDINARY_CLOUD_NAME    = '';
-const CLOUDINARY_UPLOAD_PRESET = '';
+const STORAGE_BUCKET = 'foto-absensi'; // nama bucket di Supabase Storage
 
 // Koordinat kantor default (fallback jika tidak ada assign lokasi)
 const KANTOR_LAT    = -8.621840340445894;
@@ -656,12 +474,6 @@ document.addEventListener('DOMContentLoaded', () => {
   setInterval(updateJam, 1000);
   loadKaryawanList();
   loadAllLokasi();
-  loadKaryawanCutiList();
-  // set default tanggal cuti hari ini
-  const today = new Date().toISOString().split('T')[0];
-  document.getElementById('cuti-dari').value   = today;
-  document.getElementById('cuti-sampai').value = today;
-  hitungDurasi();
 });
 
 document.getElementById('input-lokasi').addEventListener('change', function () {
@@ -965,6 +777,32 @@ async function cekKaryawanDanLokasi(idKaryawan) {
 }
 
 // =============================================
+// UPLOAD FOTO KE SUPABASE STORAGE
+// =============================================
+async function uploadFotoToStorage(idKaryawan) {
+  try {
+    const res  = await fetch(fotoDataURL);
+    const blob = await res.blob();
+    const fileName = `${idKaryawan}_${Date.now()}.jpg`;
+
+    const { error } = await db.storage
+      .from(STORAGE_BUCKET)
+      .upload(fileName, blob, { contentType: 'image/jpeg', upsert: false });
+
+    if (error) {
+      console.error('Upload foto gagal:', error);
+      return null;
+    }
+
+    const { data } = db.storage.from(STORAGE_BUCKET).getPublicUrl(fileName);
+    return data?.publicUrl || null;
+  } catch (err) {
+    console.error('Upload foto error:', err);
+    return null;
+  }
+}
+
+// =============================================
 // SUBMIT ABSENSI
 // =============================================
 async function submitAbsen() {
@@ -1006,6 +844,10 @@ async function submitAbsen() {
 
   if (gpsData.acc > 100) toast('Akurasi GPS terlalu rendah, coba di luar ruangan', 'warn');
 
+  btn.textContent = '⏳ Mengunggah foto...';
+  const fotoUrl = await uploadFotoToStorage(idKaryawan);
+  if (!fotoUrl) toast('Foto gagal diunggah, absensi tetap disimpan tanpa foto', 'warn');
+
   btn.textContent = '⏳ Menyimpan...';
 
   const hasilEval   = await evaluasiAbsensi(idKaryawan, tipeAbsen);
@@ -1032,6 +874,7 @@ async function submitAbsen() {
       jarak_kantor:  hasil.jarak        || jarak,
       di_area_kantor: hasil.dalamRadius ?? diKantor,
       metode:        'mobile',
+      foto_url:      fotoUrl,
       telat_menit:   hasilEval?.telat    || 0,
       lembur_menit:  hasilEval?.lembur   || 0,
       is_libur:      hasilEval?.is_libur || false,
@@ -1096,191 +939,14 @@ function absenLagi() {
 }
 
 // =============================================
-// TAB SWITCHING
+// TOAST
 // =============================================
-function switchTab(tab) {
-  const isAbsen = tab === 'absen';
-  document.getElementById('panel-absen').style.display = isAbsen ? 'block' : 'none';
-  document.getElementById('panel-cuti').style.display  = isAbsen ? 'none'  : 'block';
-  document.getElementById('tab-absen-btn').classList.toggle('active', isAbsen);
-  document.getElementById('tab-cuti-btn').classList.toggle('active', !isAbsen);
-}
-
-// =============================================
-// CUTI — STATE & INIT
-// =============================================
-let jenisCuti    = 'Tahunan';
-let cutiKaryawan = null; // data kuota
-
-async function loadKaryawanCutiList() {
-  const { data, error } = await db
-    .from('karyawan')
-    .select('id_karyawan, nama')
-    .eq('status', 'aktif')
-    .order('nama');
-  if (error) return;
-  const sel = document.getElementById('cuti-nama');
-  sel.innerHTML = '<option value="">-- Pilih Nama --</option>';
-  data.forEach(k => { sel.innerHTML += `<option value="${k.id_karyawan}">${k.nama}</option>`; });
-}
-
-async function onCutiNamaChange() {
-  const sel = document.getElementById('cuti-nama');
-  const id  = sel.value;
-  document.getElementById('cuti-id').value = id || '';
-  if (!id) { document.getElementById('quota-box').style.display = 'none'; return; }
-  await loadKuotaCuti(id);
-}
-
-async function loadKuotaCuti(idKaryawan) {
-  const tahun = new Date().getFullYear();
-  // Load kuota setting
-  const { data: kuota } = await db.from('cuti_kuota')
-    .select('*').eq('id_karyawan', idKaryawan).eq('tahun', tahun).maybeSingle();
-
-  // Load total hari cuti yang sudah disetujui/pending tahun ini
-  const { data: pengajuan } = await db.from('cuti_pengajuan')
-    .select('durasi_hari, status')
-    .eq('id_karyawan', idKaryawan)
-    .eq('tahun', tahun)
-    .in('status', ['pending', 'disetujui']);
-
-  const totalKuota  = kuota?.kuota_hari || 12; // default 12 hari
-  const totalDiambil = (pengajuan || []).reduce((s, r) => s + (r.durasi_hari || 0), 0);
-  const sisa = Math.max(0, totalKuota - totalDiambil);
-
-  cutiKaryawan = { totalKuota, totalDiambil, sisa };
-
-  document.getElementById('quota-total').textContent   = totalKuota + ' hari';
-  document.getElementById('quota-diambil').textContent = totalDiambil + ' hari';
-  document.getElementById('quota-sisa').textContent    = sisa + ' hari';
-  document.getElementById('quota-box').style.display   = 'flex';
-  hitungDurasi();
-}
-
-function pilihJenis(jenis) {
-  jenisCuti = jenis;
-  ['tahunan','sakit','penting','menikah','melahirkan','lain'].forEach(k => {
-    const el = document.getElementById('jenis-' + k);
-    if (el) el.classList.remove('selected');
-  });
-  const map = { 'Tahunan':'tahunan','Sakit':'sakit','Keperluan Penting':'penting','Menikah':'menikah','Melahirkan':'melahirkan','Lainnya':'lain' };
-  const el = document.getElementById('jenis-' + map[jenis]);
-  if (el) el.classList.add('selected');
-  hitungDurasi();
-}
-
-function hitungDurasi() {
-  const dari   = document.getElementById('cuti-dari').value;
-  const sampai = document.getElementById('cuti-sampai').value;
-  const box    = document.getElementById('durasi-box');
-  const warn   = document.getElementById('sisa-warn');
-
-  if (!dari || !sampai) { box.style.display = 'none'; return; }
-  const d1 = new Date(dari);
-  const d2 = new Date(sampai);
-  if (d2 < d1) { box.style.display = 'none'; toast('Tanggal selesai tidak boleh sebelum tanggal mulai', 'error'); return; }
-
-  const durasi = Math.round((d2 - d1) / 86400000) + 1;
-  box.style.display  = 'block';
-  box.textContent    = `✅ Durasi: ${durasi} hari kerja`;
-
-  if (cutiKaryawan && jenisCuti === 'Tahunan') {
-    if (durasi > cutiKaryawan.sisa) {
-      warn.style.display = 'block';
-    } else {
-      warn.style.display = 'none';
-    }
-  } else {
-    warn.style.display = 'none';
-  }
-}
-
-// =============================================
-// SUBMIT CUTI
-// =============================================
-async function submitCuti() {
-  const sel        = document.getElementById('cuti-nama');
-  const nama       = sel.options[sel.selectedIndex]?.text || '';
-  const idKaryawan = document.getElementById('cuti-id').value.trim();
-  const dari       = document.getElementById('cuti-dari').value;
-  const sampai     = document.getElementById('cuti-sampai').value;
-  const keterangan = document.getElementById('cuti-keterangan').value.trim();
-
-  if (!idKaryawan) { toast('Pilih nama karyawan dulu!', 'error'); return; }
-  if (!dari || !sampai)  { toast('Pilih tanggal cuti!', 'error');    return; }
-
-  const d1 = new Date(dari);
-  const d2 = new Date(sampai);
-  if (d2 < d1) { toast('Tanggal selesai tidak boleh sebelum tanggal mulai', 'error'); return; }
-
-  const durasi = Math.round((d2 - d1) / 86400000) + 1;
-  const tahun  = d1.getFullYear();
-
-  // Cek quota untuk cuti tahunan
-  if (jenisCuti === 'Tahunan' && cutiKaryawan && durasi > cutiKaryawan.sisa) {
-    toast('Sisa cuti tidak mencukupi!', 'error'); return;
-  }
-
-  const btn = document.getElementById('btn-submit-cuti');
-  btn.disabled    = true;
-  btn.textContent = '⏳ Mengirim...';
-
-  try {
-    const { error } = await db.from('cuti_pengajuan').insert([{
-      nama,
-      id_karyawan:  idKaryawan,
-      jenis_cuti:   jenisCuti,
-      tanggal_dari: dari,
-      tanggal_sampai: sampai,
-      durasi_hari:  durasi,
-      keterangan:   keterangan || null,
-      status:       'pending',
-      tahun,
-      created_at:   new Date().toISOString(),
-    }]);
-
-    if (error) {
-      toast('Gagal mengirim pengajuan: ' + error.message, 'error');
-      btn.disabled = false; btn.textContent = 'Kirim Pengajuan Cuti';
-      return;
-    }
-
-    document.getElementById('form-screen').style.display = 'none';
-    document.getElementById('success-cuti-screen').classList.add('show');
-    document.getElementById('detail-cuti-box').innerHTML = `
-      <div class="detail-row"><span class="detail-key">Nama</span><span class="detail-val">${nama}</span></div>
-      <div class="detail-row"><span class="detail-key">Jenis Cuti</span><span class="detail-val">${jenisCuti}</span></div>
-      <div class="detail-row"><span class="detail-key">Tanggal Mulai</span><span class="detail-val">${new Date(dari).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})}</span></div>
-      <div class="detail-row"><span class="detail-key">Tanggal Selesai</span><span class="detail-val">${new Date(sampai).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})}</span></div>
-      <div class="detail-row"><span class="detail-key">Durasi</span><span class="detail-val">${durasi} hari</span></div>
-      <div class="detail-row"><span class="detail-key">Status</span><span class="detail-val">⏳ Menunggu persetujuan HR</span></div>
-    `;
-  } catch (err) {
-    console.error(err);
-    toast('Gagal mengirim. Cek koneksi internet.', 'error');
-    btn.disabled = false; btn.textContent = 'Kirim Pengajuan Cuti';
-  }
-}
-
-function ajukanCutiLagi() {
-  document.getElementById('form-screen').style.display = 'block';
-  document.getElementById('success-cuti-screen').classList.remove('show');
-  document.getElementById('cuti-nama').value        = '';
-  document.getElementById('cuti-id').value          = '';
-  document.getElementById('cuti-keterangan').value  = '';
-  document.getElementById('quota-box').style.display = 'none';
-  document.getElementById('sisa-warn').style.display = 'none';
-  document.getElementById('durasi-box').style.display = 'none';
-  jenisCuti    = 'Tahunan';
-  cutiKaryawan = null;
-  pilihJenis('Tahunan');
-  const today = new Date().toISOString().split('T')[0];
-  document.getElementById('cuti-dari').value   = today;
-  document.getElementById('cuti-sampai').value = today;
-  const btn = document.getElementById('btn-submit-cuti');
-  btn.disabled    = false;
-  btn.textContent = 'Kirim Pengajuan Cuti';
+function toast(msg, type = '') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className   = 'toast ' + type;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 3200);
 }
 </script>
 </body>
