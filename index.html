@@ -785,19 +785,26 @@ async function uploadFotoToStorage(idKaryawan) {
     const blob = await res.blob();
     const fileName = `${idKaryawan}_${Date.now()}.jpg`;
 
-    const { error } = await db.storage
+    const { data: uploadData, error } = await db.storage
       .from(STORAGE_BUCKET)
-      .upload(fileName, blob, { contentType: 'image/jpeg', upsert: false });
+      .upload(fileName, blob, { contentType: 'image/jpeg', upsert: true });
 
     if (error) {
       console.error('Upload foto gagal:', error);
+      toast('Upload foto gagal: ' + (error.message || JSON.stringify(error)), 'error');
       return null;
     }
 
-    const { data } = db.storage.from(STORAGE_BUCKET).getPublicUrl(fileName);
-    return data?.publicUrl || null;
+    const { data } = db.storage.from(STORAGE_BUCKET).getPublicUrl(uploadData.path);
+    if (!data?.publicUrl) {
+      console.error('getPublicUrl tidak mengembalikan URL untuk path:', uploadData.path);
+      toast('Foto terunggah tapi gagal mendapat URL publik', 'error');
+      return null;
+    }
+    return data.publicUrl;
   } catch (err) {
     console.error('Upload foto error:', err);
+    toast('Upload foto error: ' + (err.message || err), 'error');
     return null;
   }
 }
